@@ -7,7 +7,8 @@ export function useAgents() {
     queryKey: ['agents'],
     queryFn: async () => {
       const { data } = await apiClient.get('/agents');
-      return data;
+      // Backend returns { agents: [...] } wrapper
+      return Array.isArray(data) ? data : data.agents ?? [];
     },
   });
 }

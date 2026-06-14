@@ -68,7 +68,7 @@ export default function StatsCards({ stats, isLoading }: StatsCardsProps) {
                   </div>
                 </div>
                 <p className="text-2xl font-bold text-slate-900">
-                  {stats ? card.format(stats[card.key]) : '--'}
+                  {stats && stats[card.key] != null ? card.format(stats[card.key]) : '--'}
                 </p>
               </>
             )}

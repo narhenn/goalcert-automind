@@ -1,9 +1,18 @@
 import { CheckCircle, AlertCircle, Clock } from 'lucide-react';
 import { timeAgo } from '../../lib/utils';
-import type { ActivityItem } from '../../types';
+
+interface ActivityEvent {
+  execution_id: string;
+  agent_id: string;
+  agent_name: string;
+  agent_type: string;
+  status: string;
+  triggered_by: string;
+  created_at: string;
+}
 
 interface ActivityFeedProps {
-  activities: ActivityItem[] | undefined;
+  activities: ActivityEvent[] | undefined;
   isLoading: boolean;
 }
 
@@ -50,7 +59,7 @@ export default function ActivityFeed({ activities, isLoading }: ActivityFeedProp
       ) : (
         <div className="space-y-3">
           {items.map((item) => (
-            <div key={item.id} className="flex items-start gap-3">
+            <div key={item.execution_id} className="flex items-start gap-3">
               <div className="mt-0.5 w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center flex-shrink-0">
                 {getStatusIcon(item.status)}
               </div>
@@ -58,7 +67,10 @@ export default function ActivityFeed({ activities, isLoading }: ActivityFeedProp
                 <p className="text-sm text-slate-700">
                   <span className="font-medium">{item.agent_name}</span>
                   {' '}
-                  {item.action}
+                  {item.status === 'success' ? 'completed successfully' :
+                   item.status === 'failed' ? 'failed' :
+                   item.status === 'running' ? 'is running' :
+                   `triggered (${item.triggered_by})`}
                 </p>
                 <p className="text-xs text-slate-400">{timeAgo(item.created_at)}</p>
               </div>
