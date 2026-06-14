@@ -1,28 +1,24 @@
 import { cn } from '../../lib/utils';
 
-const statusConfig: Record<string, { bg: string; text: string; dot: string; label: string }> = {
+const statusConfig: Record<string, { bg: string; color: string; label: string }> = {
   active: {
-    bg: 'bg-green-50',
-    text: 'text-green-700',
-    dot: 'bg-green-500',
+    bg: 'rgba(22,163,74,.12)',
+    color: '#16a34a',
     label: 'Active',
   },
   paused: {
-    bg: 'bg-yellow-50',
-    text: 'text-yellow-700',
-    dot: 'bg-yellow-500',
+    bg: 'rgba(234,88,12,.12)',
+    color: '#ea580c',
     label: 'Paused',
   },
   error: {
-    bg: 'bg-red-50',
-    text: 'text-red-700',
-    dot: 'bg-red-500',
+    bg: 'rgba(225,29,72,.12)',
+    color: '#e11d48',
     label: 'Error',
   },
   draft: {
-    bg: 'bg-slate-50',
-    text: 'text-slate-600',
-    dot: 'bg-slate-400',
+    bg: 'rgba(73,2,162,.1)',
+    color: '#4902A2',
     label: 'Draft',
   },
 };
@@ -37,14 +33,31 @@ export default function AgentStatusBadge({ status, className }: AgentStatusBadge
 
   return (
     <span
-      className={cn(
-        'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium',
-        config.bg,
-        config.text,
-        className
-      )}
+      className={cn(className)}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 5,
+        padding: '4px 10px',
+        borderRadius: 6,
+        fontSize: 10,
+        fontWeight: 700,
+        textTransform: 'uppercase',
+        letterSpacing: '.8px',
+        background: config.bg,
+        color: config.color,
+      }}
     >
-      <span className={cn('w-1.5 h-1.5 rounded-full', config.dot)} />
+      <span
+        className={status === 'active' ? 'pulse-dot' : ''}
+        style={{
+          width: 6,
+          height: 6,
+          borderRadius: '50%',
+          background: config.color,
+          display: 'inline-block',
+        }}
+      />
       {config.label}
     </span>
   );

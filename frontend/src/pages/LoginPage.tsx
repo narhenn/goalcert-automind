@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import apiClient from '../api/client';
+import GoalCertLogo from '../components/layout/GoalCertLogo';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -31,32 +32,43 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
+    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: 'var(--gc-bg)' }}>
       <div className="w-full max-w-sm">
         {/* Branding */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 mb-2">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-              <span className="text-white text-sm font-bold">AM</span>
-            </div>
+        <div className="text-center" style={{ marginBottom: 32 }}>
+          <div className="inline-flex items-center gap-2 mb-3">
+            <GoalCertLogo size={42} />
           </div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-            AUTOMIND
+          <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--gc-primary)' }}>
+            GoalCert AutoMind
           </h1>
-          <p className="text-slate-500 text-sm mt-1">Sign in to your account</p>
+          <p style={{ fontSize: 13, color: 'var(--gc-muted)', marginTop: 4 }}>Sign in to your account</p>
         </div>
 
         {/* Form Card */}
-        <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm">
+        <div style={{
+          background: 'var(--gc-surface)',
+          border: '1px solid var(--gc-border)',
+          borderRadius: 'var(--radius)',
+          padding: 24,
+          boxShadow: 'var(--shadow-sm)',
+        }}>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg border border-red-200">
+              <div style={{
+                background: 'rgba(225,29,72,.08)',
+                color: 'var(--gc-red)',
+                fontSize: 13,
+                padding: '10px 14px',
+                borderRadius: 10,
+                border: '1px solid rgba(225,29,72,.2)',
+              }}>
                 {error}
               </div>
             )}
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">
+              <label htmlFor="email" style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--gc-text2)', marginBottom: 6 }}>
                 Email
               </label>
               <input
@@ -65,13 +77,25 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                style={{
+                  width: '100%',
+                  border: '1px solid var(--gc-border2)',
+                  borderRadius: 10,
+                  padding: '10px 14px',
+                  fontSize: 13,
+                  color: 'var(--gc-text)',
+                  outline: 'none',
+                  background: 'var(--gc-surface)',
+                  transition: 'border-color .15s',
+                }}
+                onFocus={(e) => (e.currentTarget.style.borderColor = '#4902A2')}
+                onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--gc-border2)')}
                 placeholder="you@example.com"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1">
+              <label htmlFor="password" style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--gc-text2)', marginBottom: 6 }}>
                 Password
               </label>
               <input
@@ -80,7 +104,19 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                style={{
+                  width: '100%',
+                  border: '1px solid var(--gc-border2)',
+                  borderRadius: 10,
+                  padding: '10px 14px',
+                  fontSize: 13,
+                  color: 'var(--gc-text)',
+                  outline: 'none',
+                  background: 'var(--gc-surface)',
+                  transition: 'border-color .15s',
+                }}
+                onFocus={(e) => (e.currentTarget.style.borderColor = '#4902A2')}
+                onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--gc-border2)')}
                 placeholder="Enter your password"
               />
             </div>
@@ -88,16 +124,30 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                width: '100%',
+                padding: '11px 16px',
+                borderRadius: 11,
+                border: 'none',
+                background: 'var(--gc-primary)',
+                color: '#ffffff',
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: loading ? 'not-allowed' : 'pointer',
+                opacity: loading ? 0.6 : 1,
+                transition: 'background .15s',
+              }}
+              onMouseEnter={(e) => { if (!loading) e.currentTarget.style.background = '#5a16b8'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = '#4902A2'; }}
             >
               {loading ? 'Signing in...' : 'Sign in'}
             </button>
           </form>
         </div>
 
-        <p className="text-center text-sm text-slate-500 mt-4">
+        <p className="text-center" style={{ fontSize: 13, color: 'var(--gc-muted)', marginTop: 16 }}>
           Don't have an account?{' '}
-          <Link to="/signup" className="text-indigo-600 hover:text-indigo-700 font-medium">
+          <Link to="/signup" style={{ color: 'var(--gc-primary)', fontWeight: 600, textDecoration: 'none' }}>
             Sign up
           </Link>
         </p>

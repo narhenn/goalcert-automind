@@ -11,11 +11,11 @@ const typeIcons: Record<string, typeof Users> = {
   custom: Users,
 };
 
-const typeGradients: Record<string, string> = {
-  sales: 'from-blue-500 to-cyan-500',
-  marketing: 'from-purple-500 to-pink-500',
-  support: 'from-green-500 to-emerald-500',
-  custom: 'from-orange-500 to-amber-500',
+const typeBadge: Record<string, { bg: string; color: string }> = {
+  sales: { bg: 'rgba(59,130,246,.1)', color: '#2563eb' },
+  marketing: { bg: 'rgba(73,2,162,.1)', color: '#4902A2' },
+  support: { bg: 'rgba(22,163,74,.1)', color: '#16a34a' },
+  custom: { bg: 'rgba(234,88,12,.1)', color: '#ea580c' },
 };
 
 export default function TemplatesPage() {
@@ -34,61 +34,106 @@ export default function TemplatesPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div>
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Agent Templates</h1>
-        <p className="text-sm text-slate-500 mt-1">
+      <div style={{ marginBottom: 24 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--gc-text)' }}>Agent Templates</h1>
+        <p style={{ fontSize: 13, color: 'var(--gc-muted)', marginTop: 4 }}>
           Start with a pre-built template or build from scratch
         </p>
       </div>
 
       {/* Templates Grid */}
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="bg-white rounded-lg border border-slate-200 overflow-hidden animate-pulse">
-              <div className="h-24 bg-slate-200" />
-              <div className="p-5 space-y-3">
-                <div className="h-5 bg-slate-200 rounded w-3/4" />
-                <div className="h-3 bg-slate-200 rounded w-full" />
-                <div className="h-3 bg-slate-200 rounded w-2/3" />
-                <div className="h-9 bg-slate-200 rounded-lg mt-4" />
+            <div key={i} style={{ background: 'var(--gc-card)', border: '1px solid var(--gc-border)', borderRadius: 'var(--radius)', overflow: 'hidden' }} className="animate-pulse">
+              <div className="h-24" style={{ background: 'var(--gc-border)' }} />
+              <div style={{ padding: 20 }} className="space-y-3">
+                <div className="h-5 rounded w-3/4" style={{ background: 'var(--gc-border)' }} />
+                <div className="h-3 rounded w-full" style={{ background: 'var(--gc-border)' }} />
+                <div className="h-9 rounded-lg mt-4" style={{ background: 'var(--gc-border)' }} />
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {templates?.map((template) => {
             const Icon = typeIcons[template.type] || Users;
-            const gradient = typeGradients[template.type] || typeGradients.custom;
+            const badge = typeBadge[template.type] || typeBadge.custom;
 
             return (
               <div
                 key={template.id}
-                className="bg-white rounded-lg border border-slate-200 overflow-hidden hover:shadow-md transition-shadow"
+                style={{
+                  background: 'var(--gc-card)',
+                  border: '1px solid var(--gc-border)',
+                  borderRadius: 'var(--radius)',
+                  overflow: 'hidden',
+                  transition: 'transform .2s ease, box-shadow .2s ease',
+                  cursor: 'pointer',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-3px)';
+                  e.currentTarget.style.boxShadow = 'var(--shadow)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
               >
-                {/* Colored Header */}
-                <div className={`h-24 bg-gradient-to-br ${gradient} flex items-center justify-center`}>
-                  <div className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center">
-                    <Icon className="w-7 h-7 text-white" />
+                {/* Gradient Header */}
+                <div style={{
+                  height: 96,
+                  background: 'var(--gc-grad)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  position: 'relative',
+                }}>
+                  <div style={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: 14,
+                    background: 'rgba(255,255,255,.18)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                    <Icon style={{ width: 28, height: 28, color: '#ffffff' }} />
                   </div>
                 </div>
 
                 {/* Content */}
-                <div className="p-5">
-                  <h3 className="font-semibold text-slate-900 mb-1">{template.name}</h3>
+                <div style={{ padding: 20 }}>
+                  {/* Type badge */}
+                  <span style={{
+                    display: 'inline-block',
+                    fontSize: 10,
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '.8px',
+                    background: badge.bg,
+                    color: badge.color,
+                    padding: '3px 9px',
+                    borderRadius: 5,
+                    marginBottom: 10,
+                  }}>
+                    {template.type}
+                  </span>
+
+                  <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--gc-text)', marginBottom: 4 }}>{template.name}</h3>
                   {template.description && (
-                    <p className="text-sm text-slate-500 mb-3">{template.description}</p>
+                    <p style={{ fontSize: 12, color: 'var(--gc-muted)', marginBottom: 12 }}>{template.description}</p>
                   )}
 
                   {/* Features */}
                   {template.features.length > 0 && (
-                    <ul className="space-y-1.5 mb-4">
+                    <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 14px', display: 'flex', flexDirection: 'column', gap: 5 }}>
                       {template.features.map((feature, i) => (
-                        <li key={i} className="flex items-start gap-2 text-xs text-slate-600">
-                          <CheckCircle className="w-3.5 h-3.5 text-green-500 mt-0.5 flex-shrink-0" />
+                        <li key={i} className="flex items-start gap-2" style={{ fontSize: 11, color: 'var(--gc-text2)' }}>
+                          <CheckCircle style={{ width: 13, height: 13, color: 'var(--gc-green)', marginTop: 1, flexShrink: 0 }} />
                           {feature}
                         </li>
                       ))}
@@ -97,7 +142,20 @@ export default function TemplatesPage() {
 
                   <button
                     onClick={() => handleDuplicate(template)}
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors"
+                    style={{
+                      width: '100%',
+                      padding: '9px 16px',
+                      borderRadius: 11,
+                      border: 'none',
+                      background: 'var(--gc-primary)',
+                      color: '#ffffff',
+                      fontSize: 12.5,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'background .15s',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = '#5a16b8')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = '#4902A2')}
                   >
                     Duplicate & Configure
                   </button>
@@ -112,17 +170,45 @@ export default function TemplatesPage() {
               setSelectedTemplate(undefined);
               setShowCreateModal(true);
             }}
-            className="bg-white rounded-lg border-2 border-dashed border-slate-300 overflow-hidden hover:border-indigo-400 hover:bg-indigo-50/30 transition-colors cursor-pointer"
+            style={{
+              background: 'var(--gc-card)',
+              border: '2px dashed var(--gc-border2)',
+              borderRadius: 'var(--radius)',
+              overflow: 'hidden',
+              cursor: 'pointer',
+              transition: 'border-color .15s, background .15s',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '48px 20px',
+              textAlign: 'center',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = '#4902A2';
+              e.currentTarget.style.background = 'rgba(73,2,162,.03)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'var(--gc-border2)';
+              e.currentTarget.style.background = 'var(--gc-card)';
+            }}
           >
-            <div className="h-full flex flex-col items-center justify-center py-16 px-5 text-center">
-              <div className="w-14 h-14 rounded-xl bg-slate-100 flex items-center justify-center mb-4">
-                <Plus className="w-7 h-7 text-slate-400" />
-              </div>
-              <h3 className="font-semibold text-slate-900 mb-1">Build from Scratch</h3>
-              <p className="text-sm text-slate-500">
-                Create a custom agent with your own workflow
-              </p>
+            <div style={{
+              width: 56,
+              height: 56,
+              borderRadius: 14,
+              background: 'var(--gc-soft)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 14,
+            }}>
+              <Plus style={{ width: 28, height: 28, color: 'var(--gc-muted)' }} />
             </div>
+            <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--gc-text)', marginBottom: 4 }}>Build from Scratch</h3>
+            <p style={{ fontSize: 12, color: 'var(--gc-muted)' }}>
+              Create a custom agent with your own workflow
+            </p>
           </div>
         </div>
       )}

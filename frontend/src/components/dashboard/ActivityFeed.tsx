@@ -19,27 +19,27 @@ interface ActivityFeedProps {
 function getStatusIcon(status: string) {
   switch (status) {
     case 'success':
-      return <CheckCircle className="w-4 h-4 text-green-500" />;
+      return <CheckCircle style={{ width: 16, height: 16, color: 'var(--gc-green)' }} />;
     case 'failed':
     case 'error':
-      return <AlertCircle className="w-4 h-4 text-red-500" />;
+      return <AlertCircle style={{ width: 16, height: 16, color: 'var(--gc-red)' }} />;
     default:
-      return <Clock className="w-4 h-4 text-slate-400" />;
+      return <Clock style={{ width: 16, height: 16, color: 'var(--gc-muted)' }} />;
   }
 }
 
 export default function ActivityFeed({ activities, isLoading }: ActivityFeedProps) {
   if (isLoading) {
     return (
-      <div className="bg-white rounded-lg border border-slate-200 p-5">
-        <h3 className="text-sm font-semibold text-slate-900 mb-4">Recent Activity</h3>
+      <div style={{ background: 'var(--gc-card)', border: '1px solid var(--gc-border)', borderRadius: 'var(--radius)', padding: 22 }}>
+        <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--gc-text)', marginBottom: 16 }}>Recent Executions</h3>
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="animate-pulse flex items-center gap-3">
-              <div className="w-8 h-8 bg-slate-200 rounded-full" />
+              <div className="w-8 h-8 rounded-full" style={{ background: 'var(--gc-border)' }} />
               <div className="flex-1 space-y-1">
-                <div className="h-3 bg-slate-200 rounded w-3/4" />
-                <div className="h-2 bg-slate-200 rounded w-1/3" />
+                <div className="h-3 rounded w-3/4" style={{ background: 'var(--gc-border)' }} />
+                <div className="h-2 rounded w-1/3" style={{ background: 'var(--gc-border)' }} />
               </div>
             </div>
           ))}
@@ -51,29 +51,55 @@ export default function ActivityFeed({ activities, isLoading }: ActivityFeedProp
   const items = (activities || []).slice(0, 10);
 
   return (
-    <div className="bg-white rounded-lg border border-slate-200 p-5">
-      <h3 className="text-sm font-semibold text-slate-900 mb-4">Recent Activity</h3>
+    <div style={{ background: 'var(--gc-card)', border: '1px solid var(--gc-border)', borderRadius: 'var(--radius)', padding: 22 }}>
+      <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--gc-text)', marginBottom: 16 }}>Recent Executions</h3>
 
       {items.length === 0 ? (
-        <p className="text-sm text-slate-400 text-center py-6">No recent activity</p>
+        <p style={{ fontSize: 13, color: 'var(--gc-muted)', textAlign: 'center', padding: '24px 0' }}>No recent activity</p>
       ) : (
         <div className="space-y-3">
           {items.map((item) => (
-            <div key={item.execution_id} className="flex items-start gap-3">
-              <div className="mt-0.5 w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center flex-shrink-0">
+            <div key={item.execution_id} className="flex items-start gap-3" style={{
+              padding: '10px 12px',
+              borderRadius: 10,
+              background: 'var(--gc-soft)',
+            }}>
+              <div style={{
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                background: 'var(--gc-surface)',
+                border: '1px solid var(--gc-border)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                marginTop: 2,
+              }}>
                 {getStatusIcon(item.status)}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-slate-700">
-                  <span className="font-medium">{item.agent_name}</span>
+                <p style={{ fontSize: 13, color: 'var(--gc-text)' }}>
+                  <span style={{ fontWeight: 600 }}>{item.agent_name}</span>
                   {' '}
                   {item.status === 'success' ? 'completed successfully' :
                    item.status === 'failed' ? 'failed' :
                    item.status === 'running' ? 'is running' :
                    `triggered (${item.triggered_by})`}
                 </p>
-                <p className="text-xs text-slate-400">{timeAgo(item.created_at)}</p>
+                <p style={{ fontSize: 11, color: 'var(--gc-muted)', marginTop: 2 }}>{timeAgo(item.created_at)}</p>
               </div>
+              {/* Status indicator */}
+              <span style={{
+                fontSize: 10,
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '.5px',
+                color: item.status === 'success' ? 'var(--gc-green)' :
+                  item.status === 'failed' ? 'var(--gc-red)' : 'var(--gc-muted)',
+              }}>
+                {item.status}
+              </span>
             </div>
           ))}
         </div>

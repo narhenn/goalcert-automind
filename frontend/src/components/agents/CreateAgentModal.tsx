@@ -6,10 +6,10 @@ import { cn } from '../../lib/utils';
 import type { AgentTemplate } from '../../types';
 
 const agentTypes = [
-  { value: 'sales', label: 'Sales', icon: Briefcase, color: 'border-blue-500 bg-blue-50 text-blue-700' },
-  { value: 'marketing', label: 'Marketing', icon: PenTool, color: 'border-purple-500 bg-purple-50 text-purple-700' },
-  { value: 'support', label: 'Support', icon: Mail, color: 'border-green-500 bg-green-50 text-green-700' },
-  { value: 'custom', label: 'Custom', icon: Users, color: 'border-orange-500 bg-orange-50 text-orange-700' },
+  { value: 'sales', label: 'Sales', icon: Briefcase },
+  { value: 'marketing', label: 'Marketing', icon: PenTool },
+  { value: 'support', label: 'Support', icon: Mail },
+  { value: 'custom', label: 'Custom', icon: Users },
 ];
 
 interface CreateAgentModalProps {
@@ -59,63 +59,123 @@ export default function CreateAgentModal({ isOpen, onClose, preselectedTemplate 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div className="absolute inset-0" style={{ background: 'rgba(29,21,48,.5)' }} onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+      <div style={{
+        position: 'relative',
+        background: 'var(--gc-surface)',
+        borderRadius: 'var(--radius)',
+        boxShadow: 'var(--shadow-lg)',
+        width: '100%',
+        maxWidth: 500,
+        margin: '0 16px',
+        maxHeight: '90vh',
+        overflowY: 'auto',
+      }}>
+        {/* Purple gradient top border */}
+        <div style={{
+          height: 4,
+          background: 'var(--gc-grad)',
+          borderRadius: '14px 14px 0 0',
+        }} />
+
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-slate-200">
-          <h2 className="text-lg font-semibold text-slate-900">Create New Agent</h2>
+        <div className="flex items-center justify-between" style={{
+          padding: '18px 22px',
+          borderBottom: '1px solid var(--gc-border)',
+        }}>
+          <h2 style={{ fontSize: 17, fontWeight: 600, color: 'var(--gc-text)' }}>Create New Agent</h2>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors"
+            style={{
+              color: 'var(--gc-muted)',
+              padding: 4,
+              borderRadius: 8,
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+            }}
           >
-            <X className="w-5 h-5" />
+            <X style={{ width: 20, height: 20 }} />
           </button>
         </div>
 
         {/* Body */}
-        <form onSubmit={handleSubmit} className="p-5 space-y-5">
+        <form onSubmit={handleSubmit} style={{ padding: 22 }}>
           {error && (
-            <div className="bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg border border-red-200">
+            <div style={{
+              background: 'rgba(225,29,72,.08)',
+              color: 'var(--gc-red)',
+              fontSize: 13,
+              padding: '10px 14px',
+              borderRadius: 10,
+              border: '1px solid rgba(225,29,72,.2)',
+              marginBottom: 18,
+            }}>
               {error}
             </div>
           )}
 
           {/* Name */}
-          <div>
-            <label htmlFor="agent-name" className="block text-sm font-medium text-slate-700 mb-1">
+          <div style={{ marginBottom: 18 }}>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--gc-text2)', marginBottom: 6 }}>
               Agent Name
             </label>
             <input
-              id="agent-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              style={{
+                width: '100%',
+                border: '1px solid var(--gc-border2)',
+                borderRadius: 10,
+                padding: '10px 14px',
+                fontSize: 13,
+                color: 'var(--gc-text)',
+                outline: 'none',
+                background: 'var(--gc-surface)',
+                transition: 'border-color .15s',
+              }}
+              onFocus={(e) => (e.currentTarget.style.borderColor = '#4902A2')}
+              onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--gc-border2)')}
               placeholder="e.g., Lead Follow-up Bot"
               autoFocus
             />
           </div>
 
           {/* Description */}
-          <div>
-            <label htmlFor="agent-desc" className="block text-sm font-medium text-slate-700 mb-1">
-              Description <span className="text-slate-400">(optional)</span>
+          <div style={{ marginBottom: 18 }}>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--gc-text2)', marginBottom: 6 }}>
+              Description <span style={{ color: 'var(--gc-muted)' }}>(optional)</span>
             </label>
             <textarea
-              id="agent-desc"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={2}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+              style={{
+                width: '100%',
+                border: '1px solid var(--gc-border2)',
+                borderRadius: 10,
+                padding: '10px 14px',
+                fontSize: 13,
+                color: 'var(--gc-text)',
+                outline: 'none',
+                background: 'var(--gc-surface)',
+                resize: 'none',
+                transition: 'border-color .15s',
+              }}
+              onFocus={(e) => (e.currentTarget.style.borderColor = '#4902A2')}
+              onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--gc-border2)')}
               placeholder="What does this agent do?"
             />
           </div>
 
           {/* Type Selection */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Agent Type</label>
+          <div style={{ marginBottom: 18 }}>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--gc-text2)', marginBottom: 8 }}>
+              Agent Type
+            </label>
             <div className="grid grid-cols-2 gap-2">
               {agentTypes.map((t) => {
                 const Icon = t.icon;
@@ -128,12 +188,23 @@ export default function CreateAgentModal({ isOpen, onClose, preselectedTemplate 
                       setType(t.value);
                       setSelectedTemplate(undefined);
                     }}
-                    className={cn(
-                      'flex items-center gap-2 px-3 py-2.5 rounded-lg border-2 text-sm font-medium transition-colors text-left',
-                      isSelected ? t.color : 'border-slate-200 text-slate-600 hover:border-slate-300'
-                    )}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      padding: '10px 14px',
+                      borderRadius: 10,
+                      border: `2px solid ${isSelected ? '#4902A2' : 'var(--gc-border)'}`,
+                      background: isSelected ? 'rgba(73,2,162,.06)' : 'var(--gc-surface)',
+                      color: isSelected ? '#4902A2' : 'var(--gc-text2)',
+                      fontSize: 13,
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      transition: 'all .15s',
+                    }}
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon style={{ width: 16, height: 16 }} />
                     {t.label}
                   </button>
                 );
@@ -143,8 +214,8 @@ export default function CreateAgentModal({ isOpen, onClose, preselectedTemplate 
 
           {/* Template Selection */}
           {filteredTemplates.length > 0 && (
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+            <div style={{ marginBottom: 18 }}>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--gc-text2)', marginBottom: 8 }}>
                 Start from a template
               </label>
               <div className="space-y-2">
@@ -155,28 +226,40 @@ export default function CreateAgentModal({ isOpen, onClose, preselectedTemplate 
                     onClick={() =>
                       setSelectedTemplate(selectedTemplate === template.id ? undefined : template.id)
                     }
-                    className={cn(
-                      'w-full text-left px-3 py-2.5 rounded-lg border-2 text-sm transition-colors',
-                      selectedTemplate === template.id
-                        ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                        : 'border-slate-200 text-slate-600 hover:border-slate-300'
-                    )}
+                    style={{
+                      width: '100%',
+                      textAlign: 'left',
+                      padding: '10px 14px',
+                      borderRadius: 10,
+                      border: `2px solid ${selectedTemplate === template.id ? '#4902A2' : 'var(--gc-border)'}`,
+                      background: selectedTemplate === template.id ? 'rgba(73,2,162,.06)' : 'var(--gc-surface)',
+                      color: selectedTemplate === template.id ? '#4902A2' : 'var(--gc-text2)',
+                      fontSize: 13,
+                      cursor: 'pointer',
+                      transition: 'all .15s',
+                    }}
                   >
-                    <p className="font-medium">{template.name}</p>
+                    <p style={{ fontWeight: 500 }}>{template.name}</p>
                     {template.description && (
-                      <p className="text-xs text-slate-500 mt-0.5">{template.description}</p>
+                      <p style={{ fontSize: 11, color: 'var(--gc-muted)', marginTop: 2 }}>{template.description}</p>
                     )}
                   </button>
                 ))}
                 <button
                   type="button"
                   onClick={() => setSelectedTemplate(undefined)}
-                  className={cn(
-                    'w-full text-left px-3 py-2.5 rounded-lg border-2 border-dashed text-sm transition-colors',
-                    !selectedTemplate
-                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                      : 'border-slate-200 text-slate-500 hover:border-slate-300'
-                  )}
+                  style={{
+                    width: '100%',
+                    textAlign: 'left',
+                    padding: '10px 14px',
+                    borderRadius: 10,
+                    border: `2px dashed ${!selectedTemplate ? '#4902A2' : 'var(--gc-border)'}`,
+                    background: !selectedTemplate ? 'rgba(73,2,162,.06)' : 'var(--gc-surface)',
+                    color: !selectedTemplate ? '#4902A2' : 'var(--gc-muted)',
+                    fontSize: 13,
+                    cursor: 'pointer',
+                    transition: 'all .15s',
+                  }}
                 >
                   Start from scratch
                 </button>
@@ -185,18 +268,41 @@ export default function CreateAgentModal({ isOpen, onClose, preselectedTemplate 
           )}
 
           {/* Actions */}
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3" style={{ paddingTop: 8 }}>
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg font-medium text-sm transition-colors"
+              style={{
+                flex: 1,
+                padding: '10px 16px',
+                borderRadius: 11,
+                border: '1px solid var(--gc-border)',
+                background: 'var(--gc-surface)',
+                color: 'var(--gc-text2)',
+                fontSize: 12.5,
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'background .15s',
+              }}
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={createAgent.isPending}
-              className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                flex: 1,
+                padding: '10px 16px',
+                borderRadius: 11,
+                border: 'none',
+                background: 'var(--gc-primary)',
+                color: '#ffffff',
+                fontSize: 12.5,
+                fontWeight: 600,
+                cursor: createAgent.isPending ? 'not-allowed' : 'pointer',
+                opacity: createAgent.isPending ? 0.6 : 1,
+                transition: 'background .15s',
+              }}
             >
               {createAgent.isPending ? 'Creating...' : 'Create Agent'}
             </button>

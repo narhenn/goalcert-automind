@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Bot } from 'lucide-react';
+import { Plus, Bot, Rocket } from 'lucide-react';
 import { useAgents, useDashboardStats, useDashboardActivity } from '../hooks/useAgents';
 import StatsCards from '../components/dashboard/StatsCards';
 import AgentCard from '../components/dashboard/AgentCard';
 import ActivityFeed from '../components/dashboard/ActivityFeed';
 import CreateAgentModal from '../components/agents/CreateAgentModal';
+import { useAuthStore } from '../stores/authStore';
 import type { Agent } from '../types';
 
 export default function DashboardPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const navigate = useNavigate();
+  const user = useAuthStore((s) => s.user);
 
   const { data: agents, isLoading: agentsLoading } = useAgents();
   const { data: stats, isLoading: statsLoading } = useDashboardStats();
@@ -24,88 +26,201 @@ export default function DashboardPage() {
     navigate(`/agents/${agent.id}`);
   };
 
+  const firstName = user?.name?.split(' ')[0] || 'there';
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Your Agents</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            {agents ? `${agents.length} agent${agents.length !== 1 ? 's' : ''}` : 'Loading...'}
-          </p>
-        </div>
+    <div>
+      {/* Welcome Banner */}
+      <div style={{
+        background: 'var(--gc-grad)',
+        borderRadius: 'var(--radius)',
+        padding: '32px 36px',
+        marginBottom: 24,
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        {/* Decorative overlay */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          right: 0,
+          width: '40%',
+          height: '100%',
+          background: 'radial-gradient(circle at 80% 50%, rgba(255,255,255,.06) 0%, transparent 70%)',
+        }} />
+        <h1 style={{ fontSize: 30, fontWeight: 700, color: '#ffffff', marginBottom: 6, position: 'relative' }}>
+          Welcome, {firstName}
+        </h1>
+        <p style={{ fontSize: 14, color: 'rgba(255,255,255,.75)', marginBottom: 18, position: 'relative' }}>
+          Your AI agents are ready. Monitor performance, launch new automations, and scale effortlessly.
+        </p>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            background: '#ffffff',
+            color: 'var(--gc-primary)',
+            padding: '10px 20px',
+            borderRadius: 11,
+            fontSize: 13,
+            fontWeight: 600,
+            border: 'none',
+            cursor: 'pointer',
+            position: 'relative',
+            boxShadow: '0 4px 14px rgba(0,0,0,.12)',
+          }}
         >
-          <Plus className="w-4 h-4" />
-          New Agent
+          <Rocket style={{ width: 16, height: 16 }} />
+          Launch an Agent
         </button>
       </div>
 
       {/* Stats */}
-      <div className="mb-8">
+      <div className="mb-6">
         <StatsCards stats={stats} isLoading={statsLoading} />
+      </div>
+
+      {/* Two-column section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
+        {/* Activity Feed */}
+        <ActivityFeed activities={activities} isLoading={activitiesLoading} />
+
+        {/* Agent summary / CTA */}
+        {agents && agents.length > 0 ? (
+          <div style={{
+            background: 'var(--gc-card)',
+            border: '1px solid var(--gc-border)',
+            borderRadius: 'var(--radius)',
+            padding: 24,
+          }}>
+            <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--gc-text)', marginBottom: 14 }}>
+              Agent Summary
+            </h3>
+            <div className="space-y-3">
+              {agents.slice(0, 4).map((agent) => (
+                <div
+                  key={agent.id}
+                  className="flex items-center justify-between"
+                  style={{
+                    padding: '10px 12px',
+                    borderRadius: 10,
+                    background: 'var(--gc-soft)',
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => handleViewDetails(agent)}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className="pulse-dot" style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      background: agent.status === 'active' ? 'var(--gc-green)' :
+                        agent.status === 'error' ? 'var(--gc-red)' :
+                        agent.status === 'paused' ? 'var(--gc-orange)' : 'var(--gc-muted)',
+                      display: 'inline-block',
+                    }} />
+                    <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--gc-text)' }}>{agent.name}</span>
+                  </div>
+                  <span style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.5px', color: 'var(--gc-muted)' }}>
+                    {agent.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div style={{
+            background: 'var(--gc-card)',
+            border: '1px solid var(--gc-border)',
+            borderRadius: 'var(--radius)',
+            padding: 36,
+            textAlign: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <div style={{
+              width: 56,
+              height: 56,
+              borderRadius: '50%',
+              background: 'var(--gc-soft)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 14,
+            }}>
+              <Bot style={{ width: 28, height: 28, color: 'var(--gc-muted)' }} />
+            </div>
+            <h3 style={{ fontSize: 16, fontWeight: 600, color: 'var(--gc-text)', marginBottom: 6 }}>
+              Create your first agent
+            </h3>
+            <p style={{ fontSize: 13, color: 'var(--gc-muted)', marginBottom: 16 }}>
+              Set up an AI agent to start automating tasks.
+            </p>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                background: 'var(--gc-primary)',
+                color: '#ffffff',
+                padding: '9px 18px',
+                borderRadius: 11,
+                fontSize: 12.5,
+                fontWeight: 600,
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              <Plus style={{ width: 14, height: 14 }} />
+              Create Agent
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Agent Grid */}
       {agentsLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="bg-white rounded-lg border border-slate-200 p-5 animate-pulse">
-              <div className="h-2 bg-slate-200 rounded mb-4" />
+            <div key={i} style={{
+              background: 'var(--gc-card)',
+              border: '1px solid var(--gc-border)',
+              borderRadius: 'var(--radius)',
+              padding: 20,
+            }} className="animate-pulse">
+              <div className="h-2 rounded mb-4" style={{ background: 'var(--gc-border)' }} />
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-slate-200 rounded-lg" />
+                <div className="w-10 h-10 rounded-lg" style={{ background: 'var(--gc-border)' }} />
                 <div className="space-y-1">
-                  <div className="h-4 bg-slate-200 rounded w-24" />
-                  <div className="h-3 bg-slate-200 rounded w-16" />
+                  <div className="h-4 rounded w-24" style={{ background: 'var(--gc-border)' }} />
+                  <div className="h-3 rounded w-16" style={{ background: 'var(--gc-border)' }} />
                 </div>
-              </div>
-              <div className="h-3 bg-slate-200 rounded w-full mb-4" />
-              <div className="grid grid-cols-3 gap-3 mb-4">
-                {Array.from({ length: 3 }).map((_, j) => (
-                  <div key={j} className="h-8 bg-slate-200 rounded" />
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <div className="flex-1 h-8 bg-slate-200 rounded-lg" />
-                <div className="flex-1 h-8 bg-slate-200 rounded-lg" />
               </div>
             </div>
           ))}
         </div>
       ) : agents && agents.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-          {agents.map((agent) => (
-            <AgentCard
-              key={agent.id}
-              agent={agent}
-              onEdit={handleEdit}
-              onViewDetails={handleViewDetails}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="bg-white rounded-lg border border-slate-200 p-12 text-center mb-8">
-          <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
-            <Bot className="w-8 h-8 text-slate-400" />
+        <div>
+          <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--gc-text)', marginBottom: 14 }}>
+            All Agents
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {agents.map((agent) => (
+              <AgentCard
+                key={agent.id}
+                agent={agent}
+                onEdit={handleEdit}
+                onViewDetails={handleViewDetails}
+              />
+            ))}
           </div>
-          <h3 className="text-lg font-semibold text-slate-900 mb-1">No agents yet</h3>
-          <p className="text-sm text-slate-500 mb-4">
-            Create your first AI agent to start automating tasks.
-          </p>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Create Agent
-          </button>
         </div>
-      )}
-
-      {/* Activity Feed */}
-      <ActivityFeed activities={activities} isLoading={activitiesLoading} />
+      ) : null}
 
       {/* Create Modal */}
       <CreateAgentModal

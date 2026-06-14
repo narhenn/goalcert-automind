@@ -8,9 +8,6 @@ interface ServiceDefinition {
   name: string;
   description: string;
   icon: typeof Mail;
-  color: string;
-  bgColor: string;
-  borderColor: string;
   configFields: { key: string; label: string; placeholder: string; type: string }[];
 }
 
@@ -20,9 +17,6 @@ const SERVICES: ServiceDefinition[] = [
     name: 'Email (Resend)',
     description: 'Send emails from your agents. Get a free API key at resend.com',
     icon: Mail,
-    color: 'text-emerald-600',
-    bgColor: 'bg-emerald-50',
-    borderColor: 'border-emerald-200',
     configFields: [
       { key: 'api_key', label: 'API Key', placeholder: 're_xxxxxxxxxxxxxxxxx', type: 'password' },
     ],
@@ -32,9 +26,6 @@ const SERVICES: ServiceDefinition[] = [
     name: 'Slack',
     description: 'Send notifications to Slack channels',
     icon: MessageSquare,
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-50',
-    borderColor: 'border-purple-200',
     configFields: [
       { key: 'webhook_url', label: 'Webhook URL', placeholder: 'https://hooks.slack.com/services/...', type: 'text' },
     ],
@@ -64,7 +55,6 @@ function IntegrationCard({
   };
 
   const handleSave = async () => {
-    // Validate all fields are filled
     const allFilled = serviceDef.configFields.every((f) => configValues[f.key]?.trim());
     if (!allFilled) return;
 
@@ -100,43 +90,79 @@ function IntegrationCard({
   };
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-      <div className="p-6">
+    <div style={{
+      background: 'var(--gc-card)',
+      border: '1px solid var(--gc-border)',
+      borderRadius: 'var(--radius)',
+      overflow: 'hidden',
+    }}>
+      <div style={{ padding: 24 }}>
         {/* Header */}
-        <div className="flex items-start justify-between mb-4">
+        <div className="flex items-start justify-between" style={{ marginBottom: 16 }}>
           <div className="flex items-center gap-3">
-            <div className={`w-11 h-11 rounded-lg ${serviceDef.bgColor} flex items-center justify-center`}>
-              <Icon className={`w-5 h-5 ${serviceDef.color}`} />
+            <div style={{
+              width: 44,
+              height: 44,
+              borderRadius: 10,
+              background: 'var(--gc-soft)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <Icon style={{ width: 20, height: 20, color: 'var(--gc-primary)' }} />
             </div>
             <div>
-              <h3 className="font-semibold text-slate-900">{serviceDef.name}</h3>
-              <p className="text-sm text-slate-500">{serviceDef.description}</p>
+              <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--gc-text)' }}>{serviceDef.name}</h3>
+              <p style={{ fontSize: 12, color: 'var(--gc-muted)' }}>{serviceDef.description}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span
-              className={`w-2.5 h-2.5 rounded-full ${isConnected ? 'bg-emerald-400' : 'bg-slate-300'}`}
-            />
-            <span className={`text-xs font-medium ${isConnected ? 'text-emerald-600' : 'text-slate-400'}`}>
+            <span className={isConnected ? 'pulse-dot' : ''} style={{
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              background: isConnected ? 'var(--gc-green)' : 'var(--gc-border2)',
+              display: 'inline-block',
+            }} />
+            <span style={{
+              fontSize: 11,
+              fontWeight: 600,
+              color: isConnected ? 'var(--gc-green)' : 'var(--gc-muted)',
+            }}>
               {isConnected ? 'Connected' : 'Disconnected'}
             </span>
           </div>
         </div>
 
-        {/* Connected state: show masked config + disconnect */}
+        {/* Connected state */}
         {isConnected && integration && !isConfirmingDisconnect && (
           <div className="space-y-3">
             {serviceDef.configFields.map((field) => (
-              <div key={field.key} className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2">
-                <span className="text-xs text-slate-500">{field.label}</span>
-                <code className="text-xs text-slate-600 font-mono">
+              <div key={field.key} className="flex items-center justify-between" style={{
+                background: 'var(--gc-soft)',
+                borderRadius: 10,
+                padding: '8px 14px',
+              }}>
+                <span style={{ fontSize: 12, color: 'var(--gc-muted)' }}>{field.label}</span>
+                <code style={{ fontSize: 12, color: 'var(--gc-text2)', fontFamily: "'JetBrains Mono', monospace" }}>
                   {getMaskedValue(field.key, integration.config[field.key] as string || '')}
                 </code>
               </div>
             ))}
             <button
               onClick={() => setIsConfirmingDisconnect(true)}
-              className="w-full mt-2 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+              style={{
+                width: '100%',
+                marginTop: 8,
+                padding: '9px 16px',
+                borderRadius: 11,
+                border: 'none',
+                background: 'rgba(225,29,72,.08)',
+                color: 'var(--gc-red)',
+                fontSize: 12.5,
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
             >
               Disconnect
             </button>
@@ -145,25 +171,51 @@ function IntegrationCard({
 
         {/* Disconnect confirmation */}
         {isConfirmingDisconnect && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-sm text-red-700 mb-3">
+          <div style={{
+            background: 'rgba(225,29,72,.06)',
+            border: '1px solid rgba(225,29,72,.15)',
+            borderRadius: 12,
+            padding: 16,
+          }}>
+            <p style={{ fontSize: 13, color: 'var(--gc-red)', marginBottom: 12 }}>
               Are you sure? Agents using this integration will stop working.
             </p>
             <div className="flex gap-2">
               <button
                 onClick={handleDisconnect}
                 disabled={disconnectMutation.isPending}
-                className="flex-1 px-3 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50"
+                style={{
+                  flex: 1,
+                  padding: '9px 14px',
+                  borderRadius: 11,
+                  border: 'none',
+                  background: 'var(--gc-red)',
+                  color: '#ffffff',
+                  fontSize: 12.5,
+                  fontWeight: 600,
+                  cursor: disconnectMutation.isPending ? 'not-allowed' : 'pointer',
+                  opacity: disconnectMutation.isPending ? 0.6 : 1,
+                }}
               >
                 {disconnectMutation.isPending ? (
-                  <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+                  <Loader2 style={{ width: 14, height: 14, margin: '0 auto' }} className="animate-spin" />
                 ) : (
                   'Yes, disconnect'
                 )}
               </button>
               <button
                 onClick={() => setIsConfirmingDisconnect(false)}
-                className="flex-1 px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors"
+                style={{
+                  flex: 1,
+                  padding: '9px 14px',
+                  borderRadius: 11,
+                  border: '1px solid var(--gc-border)',
+                  background: 'var(--gc-surface)',
+                  color: 'var(--gc-text2)',
+                  fontSize: 12.5,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
               >
                 Cancel
               </button>
@@ -171,11 +223,25 @@ function IntegrationCard({
           </div>
         )}
 
-        {/* Not connected: show connect button or form */}
+        {/* Not connected */}
         {!isConnected && !isConnecting && (
           <button
             onClick={handleConnect}
-            className={`w-full mt-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors ${serviceDef.bgColor} ${serviceDef.color} hover:opacity-80 border ${serviceDef.borderColor}`}
+            style={{
+              width: '100%',
+              marginTop: 8,
+              padding: '10px 16px',
+              borderRadius: 11,
+              border: 'none',
+              background: 'var(--gc-primary)',
+              color: '#ffffff',
+              fontSize: 12.5,
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background .15s',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = '#5a16b8')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = '#4902A2')}
           >
             Connect
           </button>
@@ -183,10 +249,10 @@ function IntegrationCard({
 
         {/* Connect form */}
         {!isConnected && isConnecting && (
-          <div className="space-y-3 mt-2">
+          <div className="space-y-3" style={{ marginTop: 8 }}>
             {serviceDef.configFields.map((field) => (
               <div key={field.key}>
-                <label className="block text-xs font-medium text-slate-700 mb-1">
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: 'var(--gc-text2)', marginBottom: 4 }}>
                   {field.label}
                 </label>
                 <input
@@ -196,7 +262,19 @@ function IntegrationCard({
                   onChange={(e) =>
                     setConfigValues((prev) => ({ ...prev, [field.key]: e.target.value }))
                   }
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  style={{
+                    width: '100%',
+                    border: '1px solid var(--gc-border2)',
+                    borderRadius: 10,
+                    padding: '9px 12px',
+                    fontSize: 13,
+                    color: 'var(--gc-text)',
+                    outline: 'none',
+                    background: 'var(--gc-surface)',
+                    transition: 'border-color .15s',
+                  }}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = '#4902A2')}
+                  onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--gc-border2)')}
                 />
               </div>
             ))}
@@ -207,10 +285,21 @@ function IntegrationCard({
                   connectMutation.isPending ||
                   !serviceDef.configFields.every((f) => configValues[f.key]?.trim())
                 }
-                className="flex-1 px-3 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors disabled:opacity-50"
+                style={{
+                  flex: 1,
+                  padding: '9px 14px',
+                  borderRadius: 11,
+                  border: 'none',
+                  background: 'var(--gc-primary)',
+                  color: '#ffffff',
+                  fontSize: 12.5,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  opacity: (connectMutation.isPending || !serviceDef.configFields.every((f) => configValues[f.key]?.trim())) ? 0.6 : 1,
+                }}
               >
                 {connectMutation.isPending ? (
-                  <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+                  <Loader2 style={{ width: 14, height: 14, margin: '0 auto' }} className="animate-spin" />
                 ) : (
                   'Save'
                 )}
@@ -220,13 +309,23 @@ function IntegrationCard({
                   setIsConnecting(false);
                   setConfigValues({});
                 }}
-                className="flex-1 px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors"
+                style={{
+                  flex: 1,
+                  padding: '9px 14px',
+                  borderRadius: 11,
+                  border: '1px solid var(--gc-border)',
+                  background: 'var(--gc-surface)',
+                  color: 'var(--gc-text2)',
+                  fontSize: 12.5,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
               >
                 Cancel
               </button>
             </div>
             {connectMutation.isError && (
-              <p className="text-xs text-red-600">
+              <p style={{ fontSize: 12, color: 'var(--gc-red)' }}>
                 Failed to connect. Please check your credentials and try again.
               </p>
             )}
@@ -245,36 +344,44 @@ export default function IntegrationsPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div>
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center">
-          <Plug className="w-5 h-5 text-indigo-600" />
+      <div className="flex items-center gap-3" style={{ marginBottom: 24 }}>
+        <div style={{
+          width: 40,
+          height: 40,
+          borderRadius: 10,
+          background: 'var(--gc-soft)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <Plug style={{ width: 20, height: 20, color: 'var(--gc-primary)' }} />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Integrations</h1>
-          <p className="text-sm text-slate-500">Connect your tools to power agent workflows</p>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--gc-text)' }}>Integrations</h1>
+          <p style={{ fontSize: 13, color: 'var(--gc-muted)' }}>Connect your tools to power agent workflows</p>
         </div>
       </div>
 
       {/* Integration cards */}
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {Array.from({ length: 2 }).map((_, i) => (
-            <div key={i} className="bg-white rounded-xl border border-slate-200 p-6 animate-pulse">
+            <div key={i} style={{ background: 'var(--gc-card)', border: '1px solid var(--gc-border)', borderRadius: 'var(--radius)', padding: 24 }} className="animate-pulse">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-11 h-11 bg-slate-200 rounded-lg" />
+                <div className="w-11 h-11 rounded-lg" style={{ background: 'var(--gc-border)' }} />
                 <div className="space-y-2">
-                  <div className="h-4 bg-slate-200 rounded w-32" />
-                  <div className="h-3 bg-slate-200 rounded w-48" />
+                  <div className="h-4 rounded w-32" style={{ background: 'var(--gc-border)' }} />
+                  <div className="h-3 rounded w-48" style={{ background: 'var(--gc-border)' }} />
                 </div>
               </div>
-              <div className="h-10 bg-slate-200 rounded-lg" />
+              <div className="h-10 rounded-lg" style={{ background: 'var(--gc-border)' }} />
             </div>
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {SERVICES.map((serviceDef) => (
             <IntegrationCard
               key={serviceDef.service}

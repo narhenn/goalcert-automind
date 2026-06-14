@@ -8,12 +8,12 @@ import apiClient from '../api/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 
-const execStatusConfig: Record<string, { bg: string; text: string; label: string; pulse?: boolean }> = {
-  success: { bg: 'bg-green-100', text: 'text-green-700', label: 'Success' },
-  failed: { bg: 'bg-red-100', text: 'text-red-700', label: 'Failed' },
-  running: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Running', pulse: true },
-  pending: { bg: 'bg-slate-100', text: 'text-slate-700', label: 'Pending' },
-  cancelled: { bg: 'bg-slate-100', text: 'text-slate-700', label: 'Cancelled' },
+const execStatusConfig: Record<string, { bg: string; color: string; label: string; pulse?: boolean }> = {
+  success: { bg: 'rgba(22,163,74,.12)', color: '#16a34a', label: 'Success' },
+  failed: { bg: 'rgba(225,29,72,.12)', color: '#e11d48', label: 'Failed' },
+  running: { bg: 'rgba(73,2,162,.1)', color: '#4902A2', label: 'Running', pulse: true },
+  pending: { bg: 'rgba(131,123,151,.1)', color: '#837b97', label: 'Pending' },
+  cancelled: { bg: 'rgba(131,123,151,.1)', color: '#837b97', label: 'Cancelled' },
 };
 
 export default function AgentDetailPage() {
@@ -52,7 +52,7 @@ export default function AgentDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['agents', agent.id] });
       queryClient.invalidateQueries({ queryKey: ['agents'] });
     } catch {
-      // silent fail, will be visible by status not changing
+      // silent fail
     } finally {
       setToggling(false);
     }
@@ -71,19 +71,16 @@ export default function AgentDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="animate-pulse space-y-6">
-          <div className="h-6 bg-slate-200 rounded w-32" />
-          <div className="h-8 bg-slate-200 rounded w-64" />
-          <div className="h-4 bg-slate-200 rounded w-48" />
-          <div className="grid grid-cols-3 gap-4">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="bg-white rounded-lg border border-slate-200 p-5">
-                <div className="h-4 bg-slate-200 rounded w-20 mb-2" />
-                <div className="h-8 bg-slate-200 rounded w-16" />
-              </div>
-            ))}
-          </div>
+      <div className="animate-pulse space-y-6">
+        <div className="h-6 rounded w-32" style={{ background: 'var(--gc-border)' }} />
+        <div className="h-8 rounded w-64" style={{ background: 'var(--gc-border)' }} />
+        <div className="grid grid-cols-3 gap-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} style={{ background: 'var(--gc-card)', border: '1px solid var(--gc-border)', borderRadius: 'var(--radius)', padding: 20 }}>
+              <div className="h-4 rounded w-20 mb-2" style={{ background: 'var(--gc-border)' }} />
+              <div className="h-8 rounded w-16" style={{ background: 'var(--gc-border)' }} />
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -91,17 +88,24 @@ export default function AgentDetailPage() {
 
   if (!agent) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg border border-slate-200 p-12 text-center">
-          <h2 className="text-lg font-semibold text-slate-900 mb-1">Agent not found</h2>
-          <p className="text-sm text-slate-500 mb-4">This agent may have been deleted.</p>
-          <button
-            onClick={() => navigate('/')}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors"
-          >
-            Back to Dashboard
-          </button>
-        </div>
+      <div style={{ background: 'var(--gc-card)', border: '1px solid var(--gc-border)', borderRadius: 'var(--radius)', padding: 48, textAlign: 'center' }}>
+        <h2 style={{ fontSize: 18, fontWeight: 600, color: 'var(--gc-text)', marginBottom: 6 }}>Agent not found</h2>
+        <p style={{ fontSize: 13, color: 'var(--gc-muted)', marginBottom: 18 }}>This agent may have been deleted.</p>
+        <button
+          onClick={() => navigate('/')}
+          style={{
+            background: 'var(--gc-primary)',
+            color: '#ffffff',
+            padding: '9px 18px',
+            borderRadius: 11,
+            fontSize: 12.5,
+            fontWeight: 600,
+            border: 'none',
+            cursor: 'pointer',
+          }}
+        >
+          Back to Dashboard
+        </button>
       </div>
     );
   }
@@ -110,11 +114,26 @@ export default function AgentDetailPage() {
   const hasRunningExec = recentExecutions.some((e) => e.status === 'running');
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div>
       {/* Run started alert */}
       {runAlert && (
-        <div className="fixed top-4 right-4 z-50 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg text-sm font-medium flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
-          <CheckCircle className="w-4 h-4" />
+        <div style={{
+          position: 'fixed',
+          top: 16,
+          right: 16,
+          zIndex: 100,
+          background: 'var(--gc-green)',
+          color: '#ffffff',
+          padding: '12px 18px',
+          borderRadius: 12,
+          boxShadow: 'var(--shadow-lg)',
+          fontSize: 13,
+          fontWeight: 500,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+        }}>
+          <CheckCircle style={{ width: 16, height: 16 }} />
           Execution started!
         </div>
       )}
@@ -122,192 +141,274 @@ export default function AgentDetailPage() {
       {/* Back link */}
       <button
         onClick={() => navigate('/')}
-        className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 mb-6 transition-colors"
+        className="flex items-center gap-1"
+        style={{
+          fontSize: 13,
+          color: 'var(--gc-muted)',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          marginBottom: 20,
+          padding: 0,
+        }}
       >
-        <ArrowLeft className="w-4 h-4" />
+        <ArrowLeft style={{ width: 16, height: 16 }} />
         Back to Dashboard
       </button>
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl font-bold text-slate-900">{agent.name}</h1>
-            <AgentStatusBadge status={agent.status} />
-            {hasRunningExec && (
-              <span className="inline-flex items-center gap-1 text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full animate-pulse">
-                <Loader2 className="w-3 h-3 animate-spin" />
-                Running
-              </span>
-            )}
-          </div>
-          <p className="text-sm text-slate-500 capitalize">{agent.type} Agent</p>
-          {agent.description && (
-            <p className="text-sm text-slate-600 mt-1">{agent.description}</p>
+      {/* Purple gradient banner */}
+      <div style={{
+        background: 'var(--gc-grad)',
+        borderRadius: 'var(--radius)',
+        padding: '28px 32px',
+        marginBottom: 22,
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        <div style={{ position: 'absolute', top: 0, right: 0, width: '30%', height: '100%', background: 'radial-gradient(circle at 80% 50%, rgba(255,255,255,.06) 0%, transparent 70%)' }} />
+        <div className="flex items-center gap-3 mb-2" style={{ position: 'relative' }}>
+          <h1 style={{ fontSize: 24, fontWeight: 700, color: '#ffffff' }}>{agent.name}</h1>
+          <AgentStatusBadge status={agent.status} />
+          {hasRunningExec && (
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+              fontSize: 11,
+              color: '#ffffff',
+              background: 'rgba(255,255,255,.2)',
+              padding: '3px 10px',
+              borderRadius: 20,
+            }} className="animate-pulse">
+              <Loader2 style={{ width: 12, height: 12 }} className="animate-spin" />
+              Running
+            </span>
           )}
         </div>
+        <p style={{ fontSize: 13, color: 'rgba(255,255,255,.7)', position: 'relative' }}>
+          {agent.type.charAt(0).toUpperCase() + agent.type.slice(1)} Agent
+          {agent.description && ` - ${agent.description}`}
+        </p>
 
-        <div className="flex items-center gap-2 flex-shrink-0">
+        {/* Action buttons */}
+        <div className="flex items-center gap-2 mt-4" style={{ position: 'relative' }}>
           <button
             onClick={handleRunNow}
             disabled={triggerExecution.isPending}
-            className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              background: '#ffffff',
+              color: 'var(--gc-primary)',
+              padding: '8px 16px',
+              borderRadius: 11,
+              fontSize: 12.5,
+              fontWeight: 600,
+              border: 'none',
+              cursor: triggerExecution.isPending ? 'not-allowed' : 'pointer',
+              opacity: triggerExecution.isPending ? 0.7 : 1,
+            }}
           >
-            {triggerExecution.isPending ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Rocket className="w-4 h-4" />
-            )}
+            {triggerExecution.isPending ? <Loader2 style={{ width: 14, height: 14 }} className="animate-spin" /> : <Rocket style={{ width: 14, height: 14 }} />}
             Run Now
           </button>
           <button
             onClick={() => navigate(`/agents/${agent.id}/builder`)}
-            className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              background: 'rgba(255,255,255,.18)',
+              color: '#ffffff',
+              padding: '8px 16px',
+              borderRadius: 11,
+              fontSize: 12.5,
+              fontWeight: 600,
+              border: '1px solid rgba(255,255,255,.3)',
+              cursor: 'pointer',
+            }}
           >
-            <PenTool className="w-4 h-4" />
+            <PenTool style={{ width: 14, height: 14 }} />
             Edit Workflow
           </button>
           <button
             onClick={handleTogglePause}
             disabled={toggling || agent.status === 'draft' || agent.status === 'error'}
-            className="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              background: 'rgba(255,255,255,.18)',
+              color: '#ffffff',
+              padding: '8px 16px',
+              borderRadius: 11,
+              fontSize: 12.5,
+              fontWeight: 600,
+              border: '1px solid rgba(255,255,255,.3)',
+              cursor: (toggling || agent.status === 'draft' || agent.status === 'error') ? 'not-allowed' : 'pointer',
+              opacity: (toggling || agent.status === 'draft' || agent.status === 'error') ? 0.5 : 1,
+            }}
           >
-            {agent.status === 'active' ? (
-              <>
-                <Pause className="w-4 h-4" />
-                Pause
-              </>
-            ) : (
-              <>
-                <Play className="w-4 h-4" />
-                Resume
-              </>
-            )}
+            {agent.status === 'active' ? <><Pause style={{ width: 14, height: 14 }} />Pause</> : <><Play style={{ width: 14, height: 14 }} />Resume</>}
           </button>
           <button
             onClick={handleDelete}
             disabled={deleteAgent.isPending}
-            className="inline-flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-lg font-medium text-sm transition-colors disabled:opacity-50"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              background: 'rgba(225,29,72,.2)',
+              color: '#ffffff',
+              padding: '8px 16px',
+              borderRadius: 11,
+              fontSize: 12.5,
+              fontWeight: 600,
+              border: '1px solid rgba(225,29,72,.3)',
+              cursor: deleteAgent.isPending ? 'not-allowed' : 'pointer',
+              opacity: deleteAgent.isPending ? 0.5 : 1,
+            }}
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 style={{ width: 14, height: 14 }} />
             Delete
           </button>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <div className="bg-white rounded-lg border border-slate-200 p-5">
-          <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
-            <CheckCircle className="w-4 h-4" />
-            Success Rate
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div style={{ background: 'var(--gc-card)', border: '1px solid var(--gc-border)', borderRadius: 'var(--radius)', padding: 20 }}>
+          <div className="flex items-center gap-2 mb-2">
+            <CheckCircle style={{ width: 16, height: 16, color: 'var(--gc-primary)' }} />
+            <span style={{ fontSize: 13, color: 'var(--gc-muted)' }}>Success Rate</span>
           </div>
-          <p className="text-2xl font-bold text-slate-900">
+          <p style={{ fontSize: 28, fontWeight: 800, color: 'var(--gc-text)', fontFamily: "'JetBrains Mono', monospace" }}>
             {agent.success_rate != null ? `${Math.round(agent.success_rate)}%` : '--'}
           </p>
         </div>
-        <div className="bg-white rounded-lg border border-slate-200 p-5">
-          <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
-            <Zap className="w-4 h-4" />
-            Total Executions
+        <div style={{ background: 'var(--gc-card)', border: '1px solid var(--gc-border)', borderRadius: 'var(--radius)', padding: 20 }}>
+          <div className="flex items-center gap-2 mb-2">
+            <Zap style={{ width: 16, height: 16, color: 'var(--gc-primary)' }} />
+            <span style={{ fontSize: 13, color: 'var(--gc-muted)' }}>Total Executions</span>
           </div>
-          <p className="text-2xl font-bold text-slate-900">
+          <p style={{ fontSize: 28, fontWeight: 800, color: 'var(--gc-text)', fontFamily: "'JetBrains Mono', monospace" }}>
             {agent.total_executions ?? 0}
           </p>
         </div>
-        <div className="bg-white rounded-lg border border-slate-200 p-5">
-          <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
-            <Clock className="w-4 h-4" />
-            Last Run
+        <div style={{ background: 'var(--gc-card)', border: '1px solid var(--gc-border)', borderRadius: 'var(--radius)', padding: 20 }}>
+          <div className="flex items-center gap-2 mb-2">
+            <Clock style={{ width: 16, height: 16, color: 'var(--gc-primary)' }} />
+            <span style={{ fontSize: 13, color: 'var(--gc-muted)' }}>Last Run</span>
           </div>
-          <p className="text-2xl font-bold text-slate-900">
+          <p style={{ fontSize: 28, fontWeight: 800, color: 'var(--gc-text)', fontFamily: "'JetBrains Mono', monospace" }}>
             {agent.last_execution_at ? timeAgo(agent.last_execution_at) : 'Never'}
           </p>
         </div>
       </div>
 
       {/* Agent Info */}
-      <div className="bg-white rounded-lg border border-slate-200 p-5 mb-8">
-        <h3 className="text-sm font-semibold text-slate-900 mb-3">Agent Details</h3>
-        <dl className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
+      <div style={{ background: 'var(--gc-card)', border: '1px solid var(--gc-border)', borderRadius: 'var(--radius)', padding: 22, marginBottom: 22 }}>
+        <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--gc-text)', marginBottom: 14 }}>Agent Details</h3>
+        <dl className="grid grid-cols-2 gap-x-8 gap-y-3" style={{ fontSize: 13 }}>
           <div>
-            <dt className="text-slate-500">Created</dt>
-            <dd className="text-slate-900 font-medium">{formatDate(agent.created_at)}</dd>
+            <dt style={{ color: 'var(--gc-muted)' }}>Created</dt>
+            <dd style={{ color: 'var(--gc-text)', fontWeight: 500 }}>{formatDate(agent.created_at)}</dd>
           </div>
           <div>
-            <dt className="text-slate-500">Last Updated</dt>
-            <dd className="text-slate-900 font-medium">{formatDate(agent.updated_at)}</dd>
+            <dt style={{ color: 'var(--gc-muted)' }}>Last Updated</dt>
+            <dd style={{ color: 'var(--gc-text)', fontWeight: 500 }}>{formatDate(agent.updated_at)}</dd>
           </div>
           <div>
-            <dt className="text-slate-500">Schedule</dt>
-            <dd className="text-slate-900 font-medium">
-              {agent.schedule_cron || 'Manual trigger only'}
-            </dd>
+            <dt style={{ color: 'var(--gc-muted)' }}>Schedule</dt>
+            <dd style={{ color: 'var(--gc-text)', fontWeight: 500 }}>{agent.schedule_cron || 'Manual trigger only'}</dd>
           </div>
           <div>
-            <dt className="text-slate-500">Timezone</dt>
-            <dd className="text-slate-900 font-medium">{agent.schedule_timezone}</dd>
+            <dt style={{ color: 'var(--gc-muted)' }}>Timezone</dt>
+            <dd style={{ color: 'var(--gc-text)', fontWeight: 500 }}>{agent.schedule_timezone}</dd>
           </div>
         </dl>
       </div>
 
       {/* Execution History */}
-      <div className="bg-white rounded-lg border border-slate-200 p-5">
-        <h3 className="text-sm font-semibold text-slate-900 mb-4">Execution History</h3>
+      <div style={{ background: 'var(--gc-card)', border: '1px solid var(--gc-border)', borderRadius: 'var(--radius)', padding: 22 }}>
+        <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--gc-text)', marginBottom: 16 }}>Execution History</h3>
         {loadingExecutions ? (
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+            <Loader2 style={{ width: 20, height: 20, color: 'var(--gc-muted)' }} className="animate-spin" />
           </div>
         ) : recentExecutions.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-sm text-slate-400">
+            <p style={{ fontSize: 13, color: 'var(--gc-muted)' }}>
               No executions yet. Click &apos;Run Now&apos; to test your workflow.
             </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table style={{ width: '100%', fontSize: 13, borderCollapse: 'collapse' }}>
               <thead>
-                <tr className="border-b border-slate-200">
-                  <th className="text-left py-2 pr-4 text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                  <th className="text-left py-2 pr-4 text-xs font-medium text-slate-500 uppercase tracking-wider">Triggered By</th>
-                  <th className="text-left py-2 pr-4 text-xs font-medium text-slate-500 uppercase tracking-wider">Started</th>
-                  <th className="text-left py-2 pr-4 text-xs font-medium text-slate-500 uppercase tracking-wider">Duration</th>
-                  <th className="text-left py-2 pr-4 text-xs font-medium text-slate-500 uppercase tracking-wider">Cost</th>
-                  <th className="text-right py-2 text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                <tr style={{ borderBottom: '1px solid var(--gc-border)' }}>
+                  <th style={{ textAlign: 'left', padding: '8px 12px 8px 0', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.8px', color: 'var(--gc-muted)' }}>Status</th>
+                  <th style={{ textAlign: 'left', padding: '8px 12px 8px 0', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.8px', color: 'var(--gc-muted)' }}>Triggered By</th>
+                  <th style={{ textAlign: 'left', padding: '8px 12px 8px 0', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.8px', color: 'var(--gc-muted)' }}>Started</th>
+                  <th style={{ textAlign: 'left', padding: '8px 12px 8px 0', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.8px', color: 'var(--gc-muted)' }}>Duration</th>
+                  <th style={{ textAlign: 'left', padding: '8px 12px 8px 0', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.8px', color: 'var(--gc-muted)' }}>Cost</th>
+                  <th style={{ textAlign: 'right', padding: '8px 0', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.8px', color: 'var(--gc-muted)' }}>Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody>
                 {recentExecutions.map((exec) => {
                   const cfg = execStatusConfig[exec.status] || execStatusConfig.pending;
                   return (
-                    <tr key={exec.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="py-3 pr-4">
-                        <span className={cn(
-                          'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium',
-                          cfg.bg, cfg.text,
-                          cfg.pulse && 'animate-pulse',
-                        )}>
-                          {exec.status === 'running' && <Loader2 className="w-3 h-3 animate-spin" />}
+                    <tr key={exec.id} style={{ borderBottom: '1px solid var(--gc-soft)' }}>
+                      <td style={{ padding: '12px 12px 12px 0' }}>
+                        <span
+                          className={cn(cfg.pulse && 'animate-pulse')}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            padding: '3px 9px',
+                            borderRadius: 6,
+                            fontSize: 10,
+                            fontWeight: 700,
+                            textTransform: 'uppercase',
+                            letterSpacing: '.5px',
+                            background: cfg.bg,
+                            color: cfg.color,
+                          }}
+                        >
+                          {exec.status === 'running' && <Loader2 style={{ width: 10, height: 10 }} className="animate-spin" />}
                           {cfg.label}
                         </span>
                       </td>
-                      <td className="py-3 pr-4 text-slate-600 capitalize">{exec.triggered_by}</td>
-                      <td className="py-3 pr-4 text-slate-600">
+                      <td style={{ padding: '12px 12px 12px 0', color: 'var(--gc-text2)', textTransform: 'capitalize' }}>{exec.triggered_by}</td>
+                      <td style={{ padding: '12px 12px 12px 0', color: 'var(--gc-text2)' }}>
                         {exec.started_at ? timeAgo(exec.started_at) : '--'}
                       </td>
-                      <td className="py-3 pr-4 text-slate-600 tabular-nums">
+                      <td style={{ padding: '12px 12px 12px 0', color: 'var(--gc-text2)', fontFamily: "'JetBrains Mono', monospace", fontSize: 12 }}>
                         {exec.duration_ms != null ? formatDuration(exec.duration_ms) : '--'}
                       </td>
-                      <td className="py-3 pr-4 text-slate-600 tabular-nums">
+                      <td style={{ padding: '12px 12px 12px 0', color: 'var(--gc-text2)', fontFamily: "'JetBrains Mono', monospace", fontSize: 12 }}>
                         {formatCost(exec.total_cost)}
                       </td>
-                      <td className="py-3 text-right">
+                      <td style={{ padding: '12px 0', textAlign: 'right' }}>
                         <button
                           onClick={() => navigate(`/executions/${exec.id}`)}
-                          className="inline-flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
+                          className="flex items-center gap-1"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            fontSize: 11,
+                            fontWeight: 600,
+                            color: 'var(--gc-primary)',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                          }}
                         >
-                          <Eye className="w-3 h-3" />
+                          <Eye style={{ width: 12, height: 12 }} />
                           View
                         </button>
                       </td>

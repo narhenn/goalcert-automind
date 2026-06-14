@@ -1,5 +1,45 @@
-@import '@xyflow/react/dist/style.css';
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import '@xyflow/react/dist/style.css';
+
+:root {
+  --gc-primary: #4902A2;
+  --gc-primary-600: #5a16b8;
+  --gc-primary-700: #390184;
+  --gc-grad: linear-gradient(125deg, #320080 0%, #5a1b9e 55%, #6937A6 100%);
+  --gc-grad-soft: linear-gradient(125deg, #4b138f, #7d4fc0);
+  --gc-bg: #f3f0f9;
+  --gc-surface: #ffffff;
+  --gc-card: #ffffff;
+  --gc-soft: #f6f4fc;
+  --gc-border: #e8e3f4;
+  --gc-border2: #dcd5ec;
+  --gc-text: #1d1530;
+  --gc-text2: #443a5e;
+  --gc-muted: #837b97;
+  --gc-red: #e11d48;
+  --gc-green: #16a34a;
+  --gc-orange: #ea580c;
+  --gc-yellow: #d97706;
+  --gc-purple: #7c3aed;
+  --radius: 14px;
+  --shadow-sm: 0 2px 8px rgba(50,0,128,.06);
+  --shadow: 0 8px 26px rgba(50,0,128,.09);
+  --shadow-lg: 0 18px 48px rgba(50,0,128,.18);
+}
+
+body {
+  font-family: 'Poppins', 'Sora', system-ui, sans-serif;
+  background: var(--gc-bg);
+  color: var(--gc-text);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--gc-border2); border-radius: 3px; }
+
+/* Pulse animation for status dots */
+@keyframes pulse-dot { 0%,100%{opacity:1;} 50%{opacity:.4;} }
+.pulse-dot { animation: pulse-dot 2s infinite; }
