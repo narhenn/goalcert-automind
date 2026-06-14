@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from app.core.database import init_db
+from app.routers import auth, agents, workflows, templates, dashboard
 
 # Import models so they are registered with Base.metadata before init_db
 import app.models  # noqa: F401
@@ -38,6 +39,13 @@ async def global_exception_handler(request: Request, exc: Exception):
         status_code=500,
         content={"detail": str(exc) if settings.DEBUG else "Internal server error"},
     )
+
+
+app.include_router(auth.router)
+app.include_router(agents.router)
+app.include_router(workflows.router)
+app.include_router(templates.router)
+app.include_router(dashboard.router)
 
 
 @app.get("/api/health")
