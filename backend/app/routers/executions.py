@@ -138,6 +138,7 @@ async def trigger_execution(agent_id: str, db: DB, current_user: CurrentUser):
     )
     db.add(execution)
     await db.flush()
+    await db.refresh(execution)
 
     execution_id = str(execution.id)
 

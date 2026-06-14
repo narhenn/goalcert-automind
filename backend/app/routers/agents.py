@@ -2,6 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import case, func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -13,7 +14,6 @@ from app.models.user import User
 from app.models.workflow import Workflow
 from app.schemas.agent import (
     AgentCreate,
-    AgentListResponse,
     AgentResponse,
     AgentUpdate,
 )
@@ -73,21 +73,19 @@ async def _get_agent_stats(db: AsyncSession, agent_id) -> tuple[int, float | Non
     return total, success_rate
 
 
-@router.get("", response_model=AgentListResponse)
+@router.get("", response_model=list[AgentResponse])
 async def list_agents(db: DB, current_user: CurrentUser):
-    # Get all agents for user
     result = await db.execute(
         select(Agent).where(Agent.user_id == current_user.id).order_by(Agent.created_at.desc())
     )
     agents = result.scalars().all()
 
-    # Get stats for each agent
     agent_responses = []
     for agent in agents:
         total, success_rate = await _get_agent_stats(db, agent.id)
         agent_responses.append(_agent_to_response(agent, total, success_rate))
 
-    return AgentListResponse(agents=agent_responses)
+    return agent_responses
 
 
 @router.post("", response_model=AgentResponse, status_code=status.HTTP_201_CREATED)
@@ -99,21 +97,24 @@ async def create_agent(data: AgentCreate, db: DB, current_user: CurrentUser):
         description=data.description,
     )
     db.add(agent)
-    await db.flush()
+    try:
+        await db.flush()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"An agent named '{data.name}' already exists",
+        )
 
     # Create workflow
-    workflow_definition: dict = {}
+    workflow_definition: dict = {"nodes": [], "edges": [], "viewport": {"x": 0, "y": 0, "zoom": 1}}
     if data.template_id:
         result = await db.execute(
             select(AgentTemplate).where(AgentTemplate.id == data.template_id)
         )
         template = result.scalar_one_or_none()
-        if template is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Template not found",
-            )
-        workflow_definition = template.workflow_definition or {}
+        if template and template.workflow_definition:
+            workflow_definition = template.workflow_definition
 
     workflow = Workflow(
         agent_id=agent.id,
@@ -121,6 +122,7 @@ async def create_agent(data: AgentCreate, db: DB, current_user: CurrentUser):
     )
     db.add(workflow)
     await db.flush()
+    await db.refresh(agent)
 
     return _agent_to_response(agent, 0, None)
 
@@ -141,6 +143,7 @@ async def update_agent(agent_id: str, data: AgentUpdate, db: DB, current_user: C
         setattr(agent, field, value)
 
     await db.flush()
+    await db.refresh(agent)
 
     total, success_rate = await _get_agent_stats(db, agent.id)
     return _agent_to_response(agent, total, success_rate)
@@ -158,6 +161,7 @@ async def pause_agent(agent_id: str, db: DB, current_user: CurrentUser):
     agent = await _get_agent_or_404(db, agent_id, current_user.id)
     agent.status = "paused"
     await db.flush()
+    await db.refresh(agent)
 
     total, success_rate = await _get_agent_stats(db, agent.id)
     return _agent_to_response(agent, total, success_rate)
@@ -168,6 +172,7 @@ async def resume_agent(agent_id: str, db: DB, current_user: CurrentUser):
     agent = await _get_agent_or_404(db, agent_id, current_user.id)
     agent.status = "active"
     await db.flush()
+    await db.refresh(agent)
 
     total, success_rate = await _get_agent_stats(db, agent.id)
     return _agent_to_response(agent, total, success_rate)
