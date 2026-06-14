@@ -41,8 +41,8 @@ export default function AgentDetailPage() {
     if (!agent) return;
     setToggling(true);
     try {
-      const newStatus = agent.status === 'active' ? 'paused' : 'active';
-      await apiClient.patch(`/agents/${agent.id}`, { status: newStatus });
+      const action = agent.status === 'active' ? 'pause' : 'resume';
+      await apiClient.post(`/agents/${agent.id}/${action}`);
       queryClient.invalidateQueries({ queryKey: ['agents', agent.id] });
       queryClient.invalidateQueries({ queryKey: ['agents'] });
     } catch {

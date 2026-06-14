@@ -138,12 +138,20 @@ function AIActionConfigForm({ config, updateConfig }: ConfigFormProps) {
       <div>
         <label className="block text-xs font-medium text-slate-700 mb-1">Model</label>
         <select
-          value={(config.model as string) || 'claude-sonnet-4-20250514'}
+          value={(config.model as string) || 'gpt-4o-mini'}
           onChange={(e) => updateConfig({ model: e.target.value })}
           className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
         >
-          <option value="claude-sonnet-4-20250514">Claude Sonnet 4</option>
-          <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5</option>
+          <optgroup label="OpenAI">
+            <option value="gpt-4o">GPT-4o</option>
+            <option value="gpt-4o-mini">GPT-4o Mini (fast & cheap)</option>
+            <option value="gpt-4.1">GPT-4.1</option>
+            <option value="gpt-4.1-mini">GPT-4.1 Mini</option>
+          </optgroup>
+          <optgroup label="Anthropic">
+            <option value="claude-sonnet-4-20250514">Claude Sonnet 4</option>
+            <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5</option>
+          </optgroup>
         </select>
       </div>
       <div>

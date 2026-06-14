@@ -44,7 +44,7 @@ TEMPLATES = [
                         "label": "Research Leads",
                         "config": {
                             "prompt": "You are a B2B sales researcher. Find 5 potential leads matching this Ideal Customer Profile:\n- Industry: SaaS / Technology\n- Company size: 50-500 employees\n- Role: VP Sales, Head of Growth, CEO\n\nFor each lead, provide:\n- Full name\n- Job title\n- Company name\n- A personalized outreach angle based on their company's recent news or product launches\n\nReturn as JSON array with keys: name, title, company, outreach_angle",
-                            "model": "claude-sonnet-4-20250514",
+                            "model": "gpt-4o-mini",
                             "max_tokens": 1024,
                             "temperature": 0.7,
                             "output_variable": "leads",
@@ -142,7 +142,7 @@ TEMPLATES = [
                         "label": "Generate Campaign Brief",
                         "config": {
                             "prompt": "Create a weekly marketing campaign brief for a B2B SaaS product.\n\nInclude:\n1. Campaign theme for the week\n2. Key messaging pillars (3 max)\n3. Target audience description\n4. Recommended content types\n5. Call-to-action\n\nFormat as a structured brief that a content team can execute on. Return as JSON with keys: theme, messaging_pillars, audience, content_types, cta",
-                            "model": "claude-sonnet-4-20250514",
+                            "model": "gpt-4o-mini",
                             "max_tokens": 1024,
                             "temperature": 0.8,
                             "output_variable": "campaign_brief",
@@ -157,7 +157,7 @@ TEMPLATES = [
                         "label": "Create Social Posts",
                         "config": {
                             "prompt": "Based on this campaign brief:\n{campaign_brief}\n\nGenerate 5 social media posts:\n- 3 LinkedIn posts (professional, thought-leadership)\n- 2 Twitter/X posts (concise, engaging)\n\nFor each post include: platform, content, hashtags (3 max), and suggested posting time.\n\nReturn as JSON array with keys: platform, content, hashtags, post_time",
-                            "model": "claude-sonnet-4-20250514",
+                            "model": "gpt-4o-mini",
                             "max_tokens": 1500,
                             "temperature": 0.8,
                             "output_variable": "social_posts",
@@ -219,7 +219,7 @@ TEMPLATES = [
                         "label": "Classify Email",
                         "config": {
                             "prompt": "Classify this support email into one of these categories:\n- bug_report: User is reporting a software bug\n- feature_request: User is requesting a new feature\n- question: User has a general question\n- billing: Related to billing or payments\n- spam: Unsolicited or irrelevant message\n\nEmail content: {email_content}\n\nReturn JSON with keys: category, confidence (0-1), summary, suggested_priority (low/medium/high)",
-                            "model": "claude-sonnet-4-20250514",
+                            "model": "gpt-4o-mini",
                             "max_tokens": 512,
                             "temperature": 0.3,
                             "output_variable": "classification",
@@ -247,7 +247,7 @@ TEMPLATES = [
                         "label": "Draft Response",
                         "config": {
                             "prompt": "Draft a helpful, professional support response for this email.\n\nCategory: {classification.category}\nPriority: {classification.suggested_priority}\nSummary: {classification.summary}\nOriginal email: {email_content}\n\nWrite a warm, concise response that addresses the user's concern. If it's a bug report, acknowledge the issue and ask for reproduction steps. If it's a question, provide a helpful answer.",
-                            "model": "claude-sonnet-4-20250514",
+                            "model": "gpt-4o-mini",
                             "max_tokens": 800,
                             "temperature": 0.5,
                             "output_variable": "draft_response",

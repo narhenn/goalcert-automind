@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRY_HOURS: int = 24
     ANTHROPIC_API_KEY: str = ""
+    OPENAI_API_KEY: str = ""
     RESEND_API_KEY: str = ""
     SLACK_WEBHOOK_URL: str = ""
     FRONTEND_URL: str = "http://localhost:5173"

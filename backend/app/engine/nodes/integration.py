@@ -26,13 +26,23 @@ class IntegrationNodeExecutor(BaseNodeExecutor):
 
         # Normalise recipients to a list
         if isinstance(raw_recipients, str):
-            recipients = [
-                r.strip()
-                for r in interpolate(raw_recipients, variables).split(",")
-                if r.strip()
-            ]
+            resolved = interpolate(raw_recipients, variables)
+            if isinstance(resolved, list):
+                # Variable resolved to a list (e.g. list of lead objects)
+                recipients = []
+                for item in resolved:
+                    if isinstance(item, dict):
+                        recipients.append(item.get("email", item.get("name", str(item))))
+                    else:
+                        recipients.append(str(item))
+            elif isinstance(resolved, dict):
+                recipients = [resolved.get("email", str(resolved))]
+            else:
+                recipients = [r.strip() for r in str(resolved).split(",") if r.strip()]
+        elif isinstance(raw_recipients, list):
+            recipients = [interpolate(str(r), variables) if isinstance(r, str) else str(r) for r in raw_recipients]
         else:
-            recipients = [interpolate(r, variables) for r in raw_recipients]
+            recipients = [str(raw_recipients)]
 
         if not recipients:
             return {"error": "No email recipients specified", "emails_sent": 0, "service": "email"}
