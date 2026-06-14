@@ -70,6 +70,7 @@ async def update_workflow(agent_id: str, data: WorkflowUpdate, db: DB, current_u
 
     workflow.definition = data.definition
     await db.flush()
+    await db.refresh(workflow)
 
     return _workflow_to_response(workflow)
 
@@ -83,5 +84,6 @@ async def deploy_workflow(agent_id: str, db: DB, current_user: CurrentUser):
     workflow.deployed_at = datetime.now(timezone.utc)
     agent.status = "active"
     await db.flush()
+    await db.refresh(workflow)
 
     return _workflow_to_response(workflow)
