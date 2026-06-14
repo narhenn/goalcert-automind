@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { ReactFlowProvider, useNodesState, useEdgesState } from '@xyflow/react';
-import type { Node } from '@xyflow/react';
+import type { Node, Edge } from '@xyflow/react';
 
 import ComponentSidebar from '../components/builder/ComponentSidebar';
 import WorkflowCanvas from '../components/builder/WorkflowCanvas';
@@ -14,7 +14,7 @@ function WorkflowBuilderInner() {
   const setDirty = useBuilderStore((s) => s.setDirty);
 
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
   const handleUpdateNodeData = useCallback(
     (nodeId: string, data: Record<string, unknown>) => {

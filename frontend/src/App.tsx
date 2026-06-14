@@ -13,6 +13,7 @@ import AgentDetailPage from './pages/AgentDetailPage';
 import WorkflowBuilderPage from './pages/WorkflowBuilderPage';
 import IntegrationsPage from './pages/IntegrationsPage';
 import ExecutionDetailPage from './pages/ExecutionDetailPage';
+import NotFound from './components/layout/NotFound';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -45,6 +46,9 @@ function App() {
           <Route path="/agents/:id/builder" element={<ProtectedRoute><WorkflowBuilderPage /></ProtectedRoute>} />
           <Route path="/executions/:executionId" element={<ProtectedRoute><AppLayout><ExecutionDetailPage /></AppLayout></ProtectedRoute>} />
           <Route path="/integrations" element={<ProtectedRoute><AppLayout><IntegrationsPage /></AppLayout></ProtectedRoute>} />
+
+          {/* 404 catch-all */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>

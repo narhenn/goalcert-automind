@@ -30,7 +30,7 @@ export default function ExecutionDetailPage() {
   });
 
   const { data: logs, isLoading: loadingLogs } = useExecutionLogs(executionId!, {
-    refetchInterval: (query) => {
+    refetchInterval: () => {
       // Poll logs when execution is still active
       return execution?.status === 'running' || execution?.status === 'pending' ? 3000 : false;
     },

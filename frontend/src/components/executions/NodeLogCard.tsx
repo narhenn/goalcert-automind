@@ -98,11 +98,12 @@ export default function NodeLogCard({ log }: NodeLogCardProps) {
   const Icon = nodeTypeIcons[log.node_type] || Clock;
   const config = statusConfig[log.status] || statusConfig.pending;
 
-  const hasDetails =
+  const hasDetails = Boolean(
     (log.input_data && Object.keys(log.input_data).length > 0) ||
     (log.output_data && Object.keys(log.output_data).length > 0) ||
     log.llm_usage ||
-    log.error_message;
+    log.error_message,
+  );
 
   return (
     <div className={cn('border-l-4 rounded-lg bg-white border border-slate-200 overflow-hidden', config.border)}>
