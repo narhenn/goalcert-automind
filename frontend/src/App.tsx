@@ -11,6 +11,8 @@ import DashboardPage from './pages/DashboardPage';
 import TemplatesPage from './pages/TemplatesPage';
 import AgentDetailPage from './pages/AgentDetailPage';
 import WorkflowBuilderPage from './pages/WorkflowBuilderPage';
+import IntegrationsPage from './pages/IntegrationsPage';
+import ExecutionDetailPage from './pages/ExecutionDetailPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -41,7 +43,8 @@ function App() {
           <Route path="/templates" element={<ProtectedRoute><AppLayout><TemplatesPage /></AppLayout></ProtectedRoute>} />
           <Route path="/agents/:id" element={<ProtectedRoute><AppLayout><AgentDetailPage /></AppLayout></ProtectedRoute>} />
           <Route path="/agents/:id/builder" element={<ProtectedRoute><WorkflowBuilderPage /></ProtectedRoute>} />
-          <Route path="/integrations" element={<ProtectedRoute><AppLayout><div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"><h1 className="text-2xl font-bold text-slate-900 mb-2">Integrations</h1><p className="text-sm text-slate-500">Coming soon</p></div></AppLayout></ProtectedRoute>} />
+          <Route path="/executions/:executionId" element={<ProtectedRoute><AppLayout><ExecutionDetailPage /></AppLayout></ProtectedRoute>} />
+          <Route path="/integrations" element={<ProtectedRoute><AppLayout><IntegrationsPage /></AppLayout></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>

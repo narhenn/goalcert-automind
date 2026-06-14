@@ -1,11 +1,20 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, PenTool, Pause, Play, Trash2, Clock, CheckCircle, Zap } from 'lucide-react';
+import { ArrowLeft, PenTool, Pause, Play, Trash2, Clock, CheckCircle, Zap, Rocket, Loader2, Eye } from 'lucide-react';
 import { useAgent, useDeleteAgent } from '../hooks/useAgents';
+import { useExecutions, useTriggerExecution } from '../hooks/useExecutions';
 import AgentStatusBadge from '../components/agents/AgentStatusBadge';
-import { formatDate, timeAgo } from '../lib/utils';
+import { cn, formatDate, formatDuration, formatCost, timeAgo } from '../lib/utils';
 import apiClient from '../api/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+
+const execStatusConfig: Record<string, { bg: string; text: string; label: string; pulse?: boolean }> = {
+  success: { bg: 'bg-green-100', text: 'text-green-700', label: 'Success' },
+  failed: { bg: 'bg-red-100', text: 'text-red-700', label: 'Failed' },
+  running: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Running', pulse: true },
+  pending: { bg: 'bg-slate-100', text: 'text-slate-700', label: 'Pending' },
+  cancelled: { bg: 'bg-slate-100', text: 'text-slate-700', label: 'Cancelled' },
+};
 
 export default function AgentDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -13,7 +22,10 @@ export default function AgentDetailPage() {
   const queryClient = useQueryClient();
   const { data: agent, isLoading } = useAgent(id!);
   const deleteAgent = useDeleteAgent();
+  const { data: executions, isLoading: loadingExecutions } = useExecutions(id!);
+  const triggerExecution = useTriggerExecution(id!);
   const [toggling, setToggling] = useState(false);
+  const [runAlert, setRunAlert] = useState(false);
 
   const handleDelete = async () => {
     if (!agent || !confirm(`Delete agent "${agent.name}"? This cannot be undone.`)) return;
@@ -37,6 +49,16 @@ export default function AgentDetailPage() {
       // silent fail, will be visible by status not changing
     } finally {
       setToggling(false);
+    }
+  };
+
+  const handleRunNow = async () => {
+    try {
+      await triggerExecution.mutateAsync();
+      setRunAlert(true);
+      setTimeout(() => setRunAlert(false), 3000);
+    } catch {
+      // mutation error
     }
   };
 
@@ -77,8 +99,19 @@ export default function AgentDetailPage() {
     );
   }
 
+  const recentExecutions = (executions || []).slice(0, 10);
+  const hasRunningExec = recentExecutions.some((e) => e.status === 'running');
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Run started alert */}
+      {runAlert && (
+        <div className="fixed top-4 right-4 z-50 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg text-sm font-medium flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+          <CheckCircle className="w-4 h-4" />
+          Execution started!
+        </div>
+      )}
+
       {/* Back link */}
       <button
         onClick={() => navigate('/')}
@@ -94,6 +127,12 @@ export default function AgentDetailPage() {
           <div className="flex items-center gap-3 mb-1">
             <h1 className="text-2xl font-bold text-slate-900">{agent.name}</h1>
             <AgentStatusBadge status={agent.status} />
+            {hasRunningExec && (
+              <span className="inline-flex items-center gap-1 text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full animate-pulse">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                Running
+              </span>
+            )}
           </div>
           <p className="text-sm text-slate-500 capitalize">{agent.type} Agent</p>
           {agent.description && (
@@ -102,6 +141,18 @@ export default function AgentDetailPage() {
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
+          <button
+            onClick={handleRunNow}
+            disabled={triggerExecution.isPending}
+            className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {triggerExecution.isPending ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Rocket className="w-4 h-4" />
+            )}
+            Run Now
+          </button>
           <button
             onClick={() => navigate(`/agents/${agent.id}/builder`)}
             className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors"
@@ -193,14 +244,73 @@ export default function AgentDetailPage() {
         </dl>
       </div>
 
-      {/* Execution History Placeholder */}
+      {/* Execution History */}
       <div className="bg-white rounded-lg border border-slate-200 p-5">
         <h3 className="text-sm font-semibold text-slate-900 mb-4">Execution History</h3>
-        <div className="text-center py-8">
-          <p className="text-sm text-slate-400">
-            Execution history will appear here once the agent runs.
-          </p>
-        </div>
+        {loadingExecutions ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+          </div>
+        ) : recentExecutions.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-sm text-slate-400">
+              No executions yet. Click &apos;Run Now&apos; to test your workflow.
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-200">
+                  <th className="text-left py-2 pr-4 text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                  <th className="text-left py-2 pr-4 text-xs font-medium text-slate-500 uppercase tracking-wider">Triggered By</th>
+                  <th className="text-left py-2 pr-4 text-xs font-medium text-slate-500 uppercase tracking-wider">Started</th>
+                  <th className="text-left py-2 pr-4 text-xs font-medium text-slate-500 uppercase tracking-wider">Duration</th>
+                  <th className="text-left py-2 pr-4 text-xs font-medium text-slate-500 uppercase tracking-wider">Cost</th>
+                  <th className="text-right py-2 text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {recentExecutions.map((exec) => {
+                  const cfg = execStatusConfig[exec.status] || execStatusConfig.pending;
+                  return (
+                    <tr key={exec.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="py-3 pr-4">
+                        <span className={cn(
+                          'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium',
+                          cfg.bg, cfg.text,
+                          cfg.pulse && 'animate-pulse',
+                        )}>
+                          {exec.status === 'running' && <Loader2 className="w-3 h-3 animate-spin" />}
+                          {cfg.label}
+                        </span>
+                      </td>
+                      <td className="py-3 pr-4 text-slate-600 capitalize">{exec.triggered_by}</td>
+                      <td className="py-3 pr-4 text-slate-600">
+                        {exec.started_at ? timeAgo(exec.started_at) : '--'}
+                      </td>
+                      <td className="py-3 pr-4 text-slate-600 tabular-nums">
+                        {exec.duration_ms != null ? formatDuration(exec.duration_ms) : '--'}
+                      </td>
+                      <td className="py-3 pr-4 text-slate-600 tabular-nums">
+                        {formatCost(exec.total_cost)}
+                      </td>
+                      <td className="py-3 text-right">
+                        <button
+                          onClick={() => navigate(`/executions/${exec.id}`)}
+                          className="inline-flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
+                        >
+                          <Eye className="w-3 h-3" />
+                          View
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

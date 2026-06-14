@@ -22,8 +22,9 @@ import DecisionNode from './nodes/DecisionNode';
 import EscalationNode from './nodes/EscalationNode';
 import { useWorkflow, useSaveWorkflow, useDeployWorkflow } from '../../hooks/useWorkflow';
 import { useAgent } from '../../hooks/useAgents';
+import { useTriggerExecution } from '../../hooks/useExecutions';
 import { useBuilderStore } from '../../stores/builderStore';
-import { ArrowLeft, Check, Loader2, Rocket } from 'lucide-react';
+import { ArrowLeft, Check, Loader2, Rocket, Play } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 // Must be defined OUTSIDE the component for stable reference
@@ -83,6 +84,7 @@ export default function WorkflowCanvas({
   const { data: workflow, isLoading } = useWorkflow(agentId);
   const saveWorkflow = useSaveWorkflow(agentId);
   const deployWorkflow = useDeployWorkflow(agentId);
+  const triggerExecution = useTriggerExecution(agentId);
   const setSelectedNode = useBuilderStore((s) => s.setSelectedNode);
   const isDirty = useBuilderStore((s) => s.isDirty);
   const setDirty = useBuilderStore((s) => s.setDirty);
@@ -193,6 +195,17 @@ export default function WorkflowCanvas({
     },
     [screenToFlowPosition, setNodes, setDirty],
   );
+
+  const handleRun = useCallback(() => {
+    triggerExecution.mutate(undefined, {
+      onSuccess: (data: Record<string, unknown>) => {
+        const execId = data?.id;
+        if (execId) {
+          navigate(`/executions/${execId}`);
+        }
+      },
+    });
+  }, [triggerExecution, navigate]);
 
   const handleDeploy = useCallback(() => {
     deployWorkflow.mutate();
