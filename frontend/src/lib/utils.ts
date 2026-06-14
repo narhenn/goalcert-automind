@@ -6,14 +6,18 @@ export function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleString();
 }
 
-export function formatDuration(ms: number): string {
-  if (ms < 1000) return `${ms}ms`;
-  if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
-  return `${(ms / 60000).toFixed(1)}m`;
+export function formatDuration(ms: number | string | null | undefined): string {
+  const n = Number(ms);
+  if (isNaN(n) || n === 0) return '--';
+  if (n < 1000) return `${n}ms`;
+  if (n < 60000) return `${(n / 1000).toFixed(1)}s`;
+  return `${(n / 60000).toFixed(1)}m`;
 }
 
-export function formatCost(cost: number): string {
-  return `$${cost.toFixed(4)}`;
+export function formatCost(cost: number | string | null | undefined): string {
+  const n = Number(cost);
+  if (isNaN(n)) return '$0.00';
+  return `$${n.toFixed(4)}`;
 }
 
 export function timeAgo(dateStr: string): string {
