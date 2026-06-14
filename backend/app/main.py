@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from app.core.database import init_db
-from app.routers import auth, agents, workflows, templates, dashboard
+from app.routers import auth, agents, workflows, templates, dashboard, executions
 
 # Import models so they are registered with Base.metadata before init_db
 import app.models  # noqa: F401
@@ -46,6 +46,7 @@ app.include_router(agents.router)
 app.include_router(workflows.router)
 app.include_router(templates.router)
 app.include_router(dashboard.router)
+app.include_router(executions.router)
 
 
 @app.get("/api/health")
