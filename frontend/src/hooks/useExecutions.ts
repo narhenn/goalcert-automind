@@ -3,7 +3,7 @@ import type { UseQueryOptions } from '@tanstack/react-query';
 import apiClient from '../api/client';
 import type { Execution, ExecutionNodeLog } from '../types';
 
-export function useExecutions(agentId: string) {
+export function useExecutions(agentId: string, poll = false) {
   return useQuery<Execution[]>({
     queryKey: ['executions', agentId],
     queryFn: async () => {
@@ -11,6 +11,7 @@ export function useExecutions(agentId: string) {
       return data;
     },
     enabled: !!agentId,
+    refetchInterval: poll ? 2000 : false,
   });
 }
 

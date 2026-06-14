@@ -22,10 +22,16 @@ export default function AgentDetailPage() {
   const queryClient = useQueryClient();
   const { data: agent, isLoading } = useAgent(id!);
   const deleteAgent = useDeleteAgent();
-  const { data: executions, isLoading: loadingExecutions } = useExecutions(id!);
+  const [polling, setPolling] = useState(false);
+  const { data: executions, isLoading: loadingExecutions } = useExecutions(id!, polling);
   const triggerExecution = useTriggerExecution(id!);
   const [toggling, setToggling] = useState(false);
   const [runAlert, setRunAlert] = useState(false);
+
+  // Auto-poll when there are pending/running executions
+  const hasActiveExec = (executions || []).some((e) => e.status === 'pending' || e.status === 'running');
+  if (hasActiveExec && !polling) setPolling(true);
+  if (!hasActiveExec && polling) setPolling(false);
 
   const handleDelete = async () => {
     if (!agent || !confirm(`Delete agent "${agent.name}"? This cannot be undone.`)) return;
@@ -55,6 +61,7 @@ export default function AgentDetailPage() {
   const handleRunNow = async () => {
     try {
       await triggerExecution.mutateAsync();
+      setPolling(true);
       setRunAlert(true);
       setTimeout(() => setRunAlert(false), 3000);
     } catch {
