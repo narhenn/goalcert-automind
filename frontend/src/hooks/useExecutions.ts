@@ -45,6 +45,24 @@ export function useExecutionLogs(
   });
 }
 
+export function useExecutionWithLogs(executionId: string | null, poll = false) {
+  return useQuery<{ execution: Execution; node_logs: ExecutionNodeLog[] }>({
+    queryKey: ['execution-detail', executionId],
+    queryFn: async () => {
+      const [execRes, logsRes] = await Promise.all([
+        apiClient.get(`/executions/${executionId}`),
+        apiClient.get(`/executions/${executionId}/logs`),
+      ]);
+      return {
+        execution: execRes.data,
+        node_logs: logsRes.data,
+      };
+    },
+    enabled: !!executionId,
+    refetchInterval: poll ? 2000 : false,
+  });
+}
+
 export function useTriggerExecution(agentId: string) {
   const queryClient = useQueryClient();
   return useMutation({

@@ -1,8 +1,9 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, PenTool, Pause, Play, Trash2, Clock, CheckCircle, Zap, Rocket, Loader2, Eye } from 'lucide-react';
+import { ArrowLeft, PenTool, Pause, Play, Trash2, Clock, CheckCircle, Zap, Rocket, Loader2, ChevronDown, ChevronRight } from 'lucide-react';
 import { useAgent, useDeleteAgent } from '../hooks/useAgents';
 import { useExecutions, useTriggerExecution } from '../hooks/useExecutions';
 import AgentStatusBadge from '../components/agents/AgentStatusBadge';
+import LiveExecutionPanel from '../components/executions/LiveExecutionPanel';
 import { cn, formatDate, formatDuration, formatCost, timeAgo } from '../lib/utils';
 import apiClient from '../api/client';
 import { useQueryClient } from '@tanstack/react-query';
@@ -27,6 +28,7 @@ export default function AgentDetailPage() {
   const triggerExecution = useTriggerExecution(id!);
   const [toggling, setToggling] = useState(false);
   const [runAlert, setRunAlert] = useState(false);
+  const [expandedExecId, setExpandedExecId] = useState<string | null>(null);
 
   // Auto-poll when there are pending/running executions
   const hasActiveExec = (executions || []).some((e) => e.status === 'pending' || e.status === 'running');
@@ -307,6 +309,13 @@ export default function AgentDetailPage() {
         </div>
       </div>
 
+      {/* Latest Execution Panel - shows inline when there's an active/recent execution */}
+      {recentExecutions.length > 0 && (
+        <LiveExecutionPanel
+          executionId={recentExecutions[0].id}
+        />
+      )}
+
       {/* Agent Info */}
       <div style={{ background: 'var(--gc-card)', border: '1px solid var(--gc-border)', borderRadius: 'var(--radius)', padding: 22, marginBottom: 22 }}>
         <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--gc-text)', marginBottom: 14 }}>Agent Details</h3>
@@ -348,69 +357,82 @@ export default function AgentDetailPage() {
             <table style={{ width: '100%', fontSize: 13, borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--gc-border)' }}>
+                  <th style={{ textAlign: 'left', padding: '8px 12px 8px 0', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.8px', color: 'var(--gc-muted)', width: 28 }}></th>
                   <th style={{ textAlign: 'left', padding: '8px 12px 8px 0', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.8px', color: 'var(--gc-muted)' }}>Status</th>
                   <th style={{ textAlign: 'left', padding: '8px 12px 8px 0', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.8px', color: 'var(--gc-muted)' }}>Triggered By</th>
                   <th style={{ textAlign: 'left', padding: '8px 12px 8px 0', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.8px', color: 'var(--gc-muted)' }}>Started</th>
                   <th style={{ textAlign: 'left', padding: '8px 12px 8px 0', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.8px', color: 'var(--gc-muted)' }}>Duration</th>
-                  <th style={{ textAlign: 'left', padding: '8px 12px 8px 0', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.8px', color: 'var(--gc-muted)' }}>Cost</th>
-                  <th style={{ textAlign: 'right', padding: '8px 0', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.8px', color: 'var(--gc-muted)' }}>Actions</th>
+                  <th style={{ textAlign: 'right', padding: '8px 0', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.8px', color: 'var(--gc-muted)' }}>Cost</th>
                 </tr>
               </thead>
               <tbody>
                 {recentExecutions.map((exec) => {
                   const cfg = execStatusConfig[exec.status] || execStatusConfig.pending;
+                  const isExpanded = expandedExecId === exec.id;
                   return (
                     <tr key={exec.id} style={{ borderBottom: '1px solid var(--gc-soft)' }}>
-                      <td style={{ padding: '12px 12px 12px 0' }}>
-                        <span
-                          className={cn(cfg.pulse && 'animate-pulse')}
+                      <td colSpan={6} style={{ padding: 0 }}>
+                        {/* Clickable row */}
+                        <div
+                          onClick={() => setExpandedExecId(isExpanded ? null : exec.id)}
                           style={{
-                            display: 'inline-flex',
+                            display: 'grid',
+                            gridTemplateColumns: '28px 1fr 1fr 1fr 1fr 1fr',
                             alignItems: 'center',
-                            gap: 4,
-                            padding: '3px 9px',
-                            borderRadius: 6,
-                            fontSize: 10,
-                            fontWeight: 700,
-                            textTransform: 'uppercase',
-                            letterSpacing: '.5px',
-                            background: cfg.bg,
-                            color: cfg.color,
-                          }}
-                        >
-                          {exec.status === 'running' && <Loader2 style={{ width: 10, height: 10 }} className="animate-spin" />}
-                          {cfg.label}
-                        </span>
-                      </td>
-                      <td style={{ padding: '12px 12px 12px 0', color: 'var(--gc-text2)', textTransform: 'capitalize' }}>{exec.triggered_by}</td>
-                      <td style={{ padding: '12px 12px 12px 0', color: 'var(--gc-text2)' }}>
-                        {exec.started_at ? timeAgo(exec.started_at) : '--'}
-                      </td>
-                      <td style={{ padding: '12px 12px 12px 0', color: 'var(--gc-text2)', fontFamily: "'JetBrains Mono', monospace", fontSize: 12 }}>
-                        {exec.duration_ms != null ? formatDuration(exec.duration_ms) : '--'}
-                      </td>
-                      <td style={{ padding: '12px 12px 12px 0', color: 'var(--gc-text2)', fontFamily: "'JetBrains Mono', monospace", fontSize: 12 }}>
-                        {formatCost(exec.total_cost)}
-                      </td>
-                      <td style={{ padding: '12px 0', textAlign: 'right' }}>
-                        <button
-                          onClick={() => navigate(`/executions/${exec.id}`)}
-                          className="flex items-center gap-1"
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 4,
-                            fontSize: 11,
-                            fontWeight: 600,
-                            color: 'var(--gc-primary)',
-                            background: 'none',
-                            border: 'none',
                             cursor: 'pointer',
+                            padding: '12px 0',
+                            transition: 'background .1s',
                           }}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(73,2,162,.02)')}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                         >
-                          <Eye style={{ width: 12, height: 12 }} />
-                          View
-                        </button>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            {isExpanded
+                              ? <ChevronDown style={{ width: 14, height: 14, color: 'var(--gc-muted)' }} />
+                              : <ChevronRight style={{ width: 14, height: 14, color: 'var(--gc-muted)' }} />
+                            }
+                          </div>
+                          <div>
+                            <span
+                              className={cn(cfg.pulse && 'animate-pulse')}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 4,
+                                padding: '3px 9px',
+                                borderRadius: 6,
+                                fontSize: 10,
+                                fontWeight: 700,
+                                textTransform: 'uppercase',
+                                letterSpacing: '.5px',
+                                background: cfg.bg,
+                                color: cfg.color,
+                              }}
+                            >
+                              {exec.status === 'running' && <Loader2 style={{ width: 10, height: 10 }} className="animate-spin" />}
+                              {cfg.label}
+                            </span>
+                          </div>
+                          <div style={{ color: 'var(--gc-text2)', textTransform: 'capitalize' }}>{exec.triggered_by}</div>
+                          <div style={{ color: 'var(--gc-text2)' }}>
+                            {exec.started_at ? timeAgo(exec.started_at) : '--'}
+                          </div>
+                          <div style={{ color: 'var(--gc-text2)', fontFamily: "'JetBrains Mono', monospace", fontSize: 12 }}>
+                            {exec.duration_ms != null ? formatDuration(exec.duration_ms) : '--'}
+                          </div>
+                          <div style={{ color: 'var(--gc-text2)', fontFamily: "'JetBrains Mono', monospace", fontSize: 12, textAlign: 'right' }}>
+                            {formatCost(exec.total_cost)}
+                          </div>
+                        </div>
+                        {/* Expanded inline panel */}
+                        {isExpanded && (
+                          <div style={{ padding: '0 8px 16px 28px' }}>
+                            <LiveExecutionPanel
+                              executionId={exec.id}
+                              onClose={() => setExpandedExecId(null)}
+                            />
+                          </div>
+                        )}
                       </td>
                     </tr>
                   );
