@@ -145,7 +145,41 @@ export default function LoginPage() {
           </form>
         </div>
 
-        <p className="text-center" style={{ fontSize: 13, color: 'var(--gc-muted)', marginTop: 16 }}>
+        {/* Demo autofill */}
+        <button
+          type="button"
+          onClick={() => {
+            setEmail('demo@goalcert.com');
+            setPassword('demo123');
+          }}
+          style={{
+            display: 'block',
+            width: '100%',
+            marginTop: 14,
+            padding: '9px 16px',
+            borderRadius: 11,
+            border: '1px dashed var(--gc-border2)',
+            background: 'var(--gc-soft)',
+            color: 'var(--gc-primary)',
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: 'pointer',
+            textAlign: 'center',
+            transition: 'background .15s, border-color .15s',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(73,2,162,.06)';
+            e.currentTarget.style.borderColor = 'var(--gc-primary)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'var(--gc-soft)';
+            e.currentTarget.style.borderColor = 'var(--gc-border2)';
+          }}
+        >
+          Fill Demo Credentials
+        </button>
+
+        <p className="text-center" style={{ fontSize: 13, color: 'var(--gc-muted)', marginTop: 14 }}>
           Don't have an account?{' '}
           <Link to="/signup" style={{ color: 'var(--gc-primary)', fontWeight: 600, textDecoration: 'none' }}>
             Sign up
