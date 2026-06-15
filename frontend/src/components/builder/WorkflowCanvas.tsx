@@ -38,7 +38,7 @@ const nodeTypes: NodeTypes = {
 
 const defaultConfigs: Record<string, Record<string, unknown>> = {
   trigger: { frequency: 'manual' },
-  ai_action: { prompt: '', model: 'claude-sonnet-4-20250514', max_tokens: 1024, temperature: 0.7 },
+  ai_action: { prompt: '', model: 'gpt-4o-mini', max_tokens: 1024, temperature: 0.7 },
   integration: { service: 'email', action: 'send' },
   decision: { left_operand: '', operator: '==', right_operand: '' },
   escalation: { recipient_email: '', message_template: '' },
@@ -220,8 +220,8 @@ export default function WorkflowCanvas({
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-slate-50">
-        <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+      <div className="flex-1 flex items-center justify-center" style={{ background: '#f3f0f9' }}>
+        <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#837b97' }} />
       </div>
     );
   }
@@ -229,45 +229,97 @@ export default function WorkflowCanvas({
   return (
     <div className="flex-1 flex flex-col h-full">
       {/* Toolbar */}
-      <div className="h-12 bg-white border-b border-slate-200 flex items-center justify-between px-4 flex-shrink-0">
+      <div
+        className="flex items-center justify-between px-4 flex-shrink-0"
+        style={{
+          height: '56px',
+          background: '#fff',
+          borderBottom: '1px solid #e8e3f4',
+        }}
+      >
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate(`/agents/${agentId}`)}
-            className="p-1.5 rounded hover:bg-slate-100 text-slate-500 hover:text-slate-700 transition-colors"
+            className="p-1.5 rounded-lg transition-colors"
+            style={{ color: '#837b97' }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#f6f4fc';
+              e.currentTarget.style.color = '#4902A2';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.color = '#837b97';
+            }}
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
-          <div>
-            <span className="text-sm font-semibold text-slate-900">
-              {agent?.name || 'Workflow'}
-            </span>
-          </div>
+          <span className="font-semibold" style={{ fontSize: '14px', color: '#1d1530' }}>
+            {agent?.name || 'Workflow'}
+          </span>
         </div>
 
         <div className="flex items-center gap-3">
           {/* Save status */}
-          <span className={`text-xs flex items-center gap-1 ${
-            saveWorkflow.isPending ? 'text-amber-600' : isDirty ? 'text-amber-600' : 'text-green-600'
-          }`}>
+          <span
+            className="flex items-center gap-1"
+            style={{
+              fontSize: '12px',
+              color: saveWorkflow.isPending || isDirty ? '#d97706' : '#16a34a',
+            }}
+          >
             {!saveWorkflow.isPending && !isDirty && <Check className="w-3 h-3" />}
             {saveWorkflow.isPending && <Loader2 className="w-3 h-3 animate-spin" />}
             {saveStatus}
           </span>
 
-          {/* Save button */}
+          {/* Save button - ghost style */}
           <button
             onClick={handleManualSave}
             disabled={saveWorkflow.isPending || !isDirty}
-            className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-md font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{
+              fontSize: '12px',
+              padding: '6px 12px',
+              borderRadius: '11px',
+              background: '#f6f4fc',
+              color: '#443a5e',
+              border: '1px solid #e8e3f4',
+            }}
+            onMouseEnter={(e) => {
+              if (!e.currentTarget.disabled) {
+                e.currentTarget.style.background = '#ede5ff';
+                e.currentTarget.style.borderColor = '#4902A2';
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#f6f4fc';
+              e.currentTarget.style.borderColor = '#e8e3f4';
+            }}
           >
             Save
           </button>
 
-          {/* Deploy button */}
+          {/* Deploy button - gc-primary */}
           <button
             onClick={handleDeploy}
             disabled={deployWorkflow.isPending || isDirty}
-            className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-md font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+            className="font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+            style={{
+              fontSize: '12px',
+              padding: '6px 14px',
+              borderRadius: '11px',
+              background: '#4902A2',
+              color: '#fff',
+              border: 'none',
+            }}
+            onMouseEnter={(e) => {
+              if (!e.currentTarget.disabled) {
+                e.currentTarget.style.background = '#3a0182';
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#4902A2';
+            }}
           >
             {deployWorkflow.isPending ? (
               <Loader2 className="w-3 h-3 animate-spin" />
@@ -294,13 +346,27 @@ export default function WorkflowCanvas({
           nodeTypes={nodeTypes}
           fitView
           deleteKeyCode={['Backspace', 'Delete']}
-          className="bg-slate-50"
+          proOptions={{ hideAttribution: true }}
+          style={{ background: '#f3f0f9' }}
         >
-          <Background variant={BackgroundVariant.Dots} gap={16} size={1} color="#cbd5e1" />
-          <Controls className="!bg-white !border-slate-200 !shadow-sm" />
+          <Background variant={BackgroundVariant.Dots} gap={16} size={1} color="#dcd5ec" />
+          <Controls
+            style={{
+              background: '#fff',
+              border: '1px solid #e8e3f4',
+              borderRadius: '11px',
+              boxShadow: '0 2px 8px rgba(50,0,128,.06)',
+            }}
+          />
           <MiniMap
-            className="!bg-white !border-slate-200 !shadow-sm"
+            style={{
+              background: '#fff',
+              border: '1px solid #e8e3f4',
+              borderRadius: '11px',
+              boxShadow: '0 2px 8px rgba(50,0,128,.06)',
+            }}
             nodeStrokeWidth={3}
+            nodeColor="#4902A2"
             zoomable
             pannable
           />

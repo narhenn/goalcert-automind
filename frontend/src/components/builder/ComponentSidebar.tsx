@@ -7,55 +7,45 @@ const components = [
     label: 'Trigger',
     description: 'Start your workflow on a schedule or event',
     icon: Clock,
-    bgClass: 'bg-blue-50 hover:bg-blue-100',
-    borderClass: 'border-blue-200',
-    iconClass: 'text-blue-600',
-    textClass: 'text-blue-900',
-    descClass: 'text-blue-600',
+    accent: '#7c3aed',
+    bg: '#f5f0ff',
+    bgHover: '#ede5ff',
   },
   {
     type: 'ai_action',
     label: 'AI Action',
     description: 'Run an AI prompt to process or generate data',
     icon: Brain,
-    bgClass: 'bg-purple-50 hover:bg-purple-100',
-    borderClass: 'border-purple-200',
-    iconClass: 'text-purple-600',
-    textClass: 'text-purple-900',
-    descClass: 'text-purple-600',
+    accent: '#4902A2',
+    bg: '#f3ecfc',
+    bgHover: '#ebe0fa',
   },
   {
     type: 'integration',
     label: 'Integration',
     description: 'Send email, Slack message, or call APIs',
     icon: Plug,
-    bgClass: 'bg-green-50 hover:bg-green-100',
-    borderClass: 'border-green-200',
-    iconClass: 'text-green-600',
-    textClass: 'text-green-900',
-    descClass: 'text-green-600',
+    accent: '#0e9aa7',
+    bg: '#edfaf9',
+    bgHover: '#dff5f4',
   },
   {
     type: 'decision',
     label: 'Decision',
     description: 'Branch workflow based on a condition',
     icon: GitBranch,
-    bgClass: 'bg-orange-50 hover:bg-orange-100',
-    borderClass: 'border-orange-200',
-    iconClass: 'text-orange-600',
-    textClass: 'text-orange-900',
-    descClass: 'text-orange-600',
+    accent: '#d97706',
+    bg: '#fef9ed',
+    bgHover: '#fef3d9',
   },
   {
     type: 'escalation',
     label: 'Escalation',
     description: 'Notify a person when human action is needed',
     icon: AlertTriangle,
-    bgClass: 'bg-red-50 hover:bg-red-100',
-    borderClass: 'border-red-200',
-    iconClass: 'text-red-600',
-    textClass: 'text-red-900',
-    descClass: 'text-red-600',
+    accent: '#e11d48',
+    bg: '#fef2f4',
+    bgHover: '#fde8ec',
   },
 ] as const;
 
@@ -66,10 +56,17 @@ export default function ComponentSidebar() {
   };
 
   return (
-    <div className="w-60 bg-white border-r border-slate-200 flex flex-col h-full">
-      <div className="p-4 border-b border-slate-200">
-        <h2 className="text-sm font-semibold text-slate-900">Components</h2>
-        <p className="text-xs text-slate-500 mt-1">Drag to canvas to add</p>
+    <div
+      className="w-60 flex flex-col h-full"
+      style={{ background: '#fff', borderRight: '1px solid #e8e3f4' }}
+    >
+      <div className="p-4" style={{ borderBottom: '1px solid #e8e3f4' }}>
+        <h2 className="text-sm font-semibold" style={{ color: '#1d1530' }}>
+          Components
+        </h2>
+        <p className="text-xs mt-1" style={{ color: '#837b97' }}>
+          Drag to canvas to add
+        </p>
       </div>
       <div className="p-3 space-y-2 overflow-y-auto flex-1">
         {components.map((comp) => {
@@ -79,15 +76,42 @@ export default function ComponentSidebar() {
               key={comp.type}
               draggable
               onDragStart={(e) => onDragStart(e, comp.type)}
-              className={`p-3 rounded-lg border cursor-grab active:cursor-grabbing transition-colors ${comp.bgClass} ${comp.borderClass}`}
+              className="p-3 cursor-grab active:cursor-grabbing transition-all"
+              style={{
+                background: comp.bg,
+                border: `1px solid #e8e3f4`,
+                borderRadius: '11px',
+                borderLeft: `3px solid ${comp.accent}`,
+              }}
+              onMouseEnter={(e) => {
+                const el = e.currentTarget;
+                el.style.background = comp.bgHover;
+                el.style.borderColor = comp.accent;
+                el.style.borderLeftColor = comp.accent;
+                el.style.boxShadow = `0 2px 8px rgba(50,0,128,.09)`;
+              }}
+              onMouseLeave={(e) => {
+                const el = e.currentTarget;
+                el.style.background = comp.bg;
+                el.style.borderColor = '#e8e3f4';
+                el.style.borderLeftColor = comp.accent;
+                el.style.boxShadow = 'none';
+              }}
             >
               <div className="flex items-center gap-2 mb-1">
-                <Icon className={`w-4 h-4 ${comp.iconClass}`} />
-                <span className={`text-sm font-medium ${comp.textClass}`}>
+                <div
+                  className="w-6 h-6 rounded-full flex items-center justify-center"
+                  style={{ background: `${comp.accent}18` }}
+                >
+                  <Icon className="w-3.5 h-3.5" style={{ color: comp.accent }} />
+                </div>
+                <span className="text-sm font-medium" style={{ color: '#1d1530' }}>
                   {comp.label}
                 </span>
               </div>
-              <p className={`text-xs ${comp.descClass}`}>{comp.description}</p>
+              <p className="text-xs pl-8" style={{ color: '#837b97' }}>
+                {comp.description}
+              </p>
             </div>
           );
         })}

@@ -7,6 +7,31 @@ interface NodeConfigPanelProps {
   onUpdateNodeData: (nodeId: string, data: Record<string, unknown>) => void;
 }
 
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  border: '1px solid #e8e3f4',
+  borderRadius: '10px',
+  padding: '7px 12px',
+  fontSize: '13px',
+  outline: 'none',
+  color: '#1d1530',
+  background: '#fff',
+  transition: 'border-color 0.2s, box-shadow 0.2s',
+};
+
+const labelStyle: React.CSSProperties = {
+  display: 'block',
+  fontSize: '12px',
+  fontWeight: 500,
+  color: '#443a5e',
+  marginBottom: '4px',
+};
+
+const selectStyle: React.CSSProperties = {
+  ...inputStyle,
+  appearance: 'auto' as const,
+};
+
 export default function NodeConfigPanel({ nodes, onUpdateNodeData }: NodeConfigPanelProps) {
   const selectedNodeId = useBuilderStore((s) => s.selectedNodeId);
   const setSelectedNode = useBuilderStore((s) => s.setSelectedNode);
@@ -31,12 +56,29 @@ export default function NodeConfigPanel({ nodes, onUpdateNodeData }: NodeConfigP
   };
 
   return (
-    <div className="w-80 bg-white border-l border-slate-200 flex flex-col h-full overflow-hidden">
-      <div className="p-4 border-b border-slate-200 flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-slate-900">Node Config</h2>
+    <div
+      className="w-80 flex flex-col h-full overflow-hidden"
+      style={{ background: '#fff', borderLeft: '1px solid #e8e3f4' }}
+    >
+      <div
+        className="p-4 flex items-center justify-between"
+        style={{ borderBottom: '1px solid #e8e3f4' }}
+      >
+        <h2 className="text-sm font-semibold" style={{ color: '#1d1530' }}>
+          Node Configuration
+        </h2>
         <button
           onClick={() => setSelectedNode(null)}
-          className="p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+          className="p-1 rounded-lg transition-colors"
+          style={{ color: '#837b97' }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = '#f6f4fc';
+            e.currentTarget.style.color = '#4902A2';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.color = '#837b97';
+          }}
         >
           <X className="w-4 h-4" />
         </button>
@@ -45,14 +87,24 @@ export default function NodeConfigPanel({ nodes, onUpdateNodeData }: NodeConfigP
       <div className="p-4 space-y-4 overflow-y-auto flex-1">
         {/* Common: Label */}
         <div>
-          <label className="block text-xs font-medium text-slate-700 mb-1">Label</label>
+          <label style={labelStyle}>Label</label>
           <input
             type="text"
             value={(nodeData.label as string) || ''}
             onChange={(e) => updateLabel(e.target.value)}
-            className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+            style={inputStyle}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = '#4902A2';
+              e.currentTarget.style.boxShadow = '0 0 0 3px rgba(73,2,162,.08)';
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = '#e8e3f4';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
           />
         </div>
+
+        <div style={{ height: '1px', background: '#e8e3f4' }} />
 
         {node.type === 'trigger' && <TriggerConfigForm config={config} updateConfig={updateConfig} />}
         {node.type === 'ai_action' && <AIActionConfigForm config={config} updateConfig={updateConfig} />}
@@ -71,43 +123,115 @@ interface ConfigFormProps {
   updateConfig: (updates: Record<string, unknown>) => void;
 }
 
+function GcInput({ value, onChange, placeholder, type = 'text', mono = false }: {
+  value: string;
+  onChange: (val: string) => void;
+  placeholder?: string;
+  type?: string;
+  mono?: boolean;
+}) {
+  return (
+    <input
+      type={type}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      style={{
+        ...inputStyle,
+        fontFamily: mono ? "'JetBrains Mono', monospace" : 'inherit',
+      }}
+      onFocus={(e) => {
+        e.currentTarget.style.borderColor = '#4902A2';
+        e.currentTarget.style.boxShadow = '0 0 0 3px rgba(73,2,162,.08)';
+      }}
+      onBlur={(e) => {
+        e.currentTarget.style.borderColor = '#e8e3f4';
+        e.currentTarget.style.boxShadow = 'none';
+      }}
+    />
+  );
+}
+
+function GcSelect({ value, onChange, children }: {
+  value: string;
+  onChange: (val: string) => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      style={selectStyle}
+      onFocus={(e) => {
+        e.currentTarget.style.borderColor = '#4902A2';
+        e.currentTarget.style.boxShadow = '0 0 0 3px rgba(73,2,162,.08)';
+      }}
+      onBlur={(e) => {
+        e.currentTarget.style.borderColor = '#e8e3f4';
+        e.currentTarget.style.boxShadow = 'none';
+      }}
+    >
+      {children}
+    </select>
+  );
+}
+
+function GcTextarea({ value, onChange, placeholder, rows = 4 }: {
+  value: string;
+  onChange: (val: string) => void;
+  placeholder?: string;
+  rows?: number;
+}) {
+  return (
+    <textarea
+      rows={rows}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      style={{ ...inputStyle, resize: 'vertical' as const }}
+      onFocus={(e) => {
+        e.currentTarget.style.borderColor = '#4902A2';
+        e.currentTarget.style.boxShadow = '0 0 0 3px rgba(73,2,162,.08)';
+      }}
+      onBlur={(e) => {
+        e.currentTarget.style.borderColor = '#e8e3f4';
+        e.currentTarget.style.boxShadow = 'none';
+      }}
+    />
+  );
+}
+
 function TriggerConfigForm({ config, updateConfig }: ConfigFormProps) {
   const frequency = (config.frequency as string) || 'manual';
 
   return (
     <>
       <div>
-        <label className="block text-xs font-medium text-slate-700 mb-1">Frequency</label>
-        <select
-          value={frequency}
-          onChange={(e) => updateConfig({ frequency: e.target.value })}
-          className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-        >
+        <label style={labelStyle}>Frequency</label>
+        <GcSelect value={frequency} onChange={(v) => updateConfig({ frequency: v })}>
           <option value="manual">Manual</option>
           <option value="hourly">Hourly</option>
           <option value="daily">Daily</option>
           <option value="weekly">Weekly</option>
           <option value="custom">Custom (cron)</option>
-        </select>
+        </GcSelect>
       </div>
       {frequency === 'custom' && (
         <div>
-          <label className="block text-xs font-medium text-slate-700 mb-1">Cron Expression</label>
-          <input
-            type="text"
+          <label style={labelStyle}>Cron Expression</label>
+          <GcInput
             value={(config.cron as string) || ''}
-            onChange={(e) => updateConfig({ cron: e.target.value })}
+            onChange={(v) => updateConfig({ cron: v })}
             placeholder="0 9 * * *"
-            className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm font-mono focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+            mono
           />
         </div>
       )}
       <div>
-        <label className="block text-xs font-medium text-slate-700 mb-1">Timezone</label>
-        <select
+        <label style={labelStyle}>Timezone</label>
+        <GcSelect
           value={(config.timezone as string) || 'UTC'}
-          onChange={(e) => updateConfig({ timezone: e.target.value })}
-          className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+          onChange={(v) => updateConfig({ timezone: v })}
         >
           <option value="UTC">UTC</option>
           <option value="US/Eastern">US/Eastern</option>
@@ -116,7 +240,7 @@ function TriggerConfigForm({ config, updateConfig }: ConfigFormProps) {
           <option value="Europe/London">Europe/London</option>
           <option value="Asia/Singapore">Asia/Singapore</option>
           <option value="Asia/Tokyo">Asia/Tokyo</option>
-        </select>
+        </GcSelect>
       </div>
     </>
   );
@@ -126,21 +250,19 @@ function AIActionConfigForm({ config, updateConfig }: ConfigFormProps) {
   return (
     <>
       <div>
-        <label className="block text-xs font-medium text-slate-700 mb-1">Prompt</label>
-        <textarea
+        <label style={labelStyle}>Prompt</label>
+        <GcTextarea
           rows={5}
           value={(config.prompt as string) || ''}
-          onChange={(e) => updateConfig({ prompt: e.target.value })}
+          onChange={(v) => updateConfig({ prompt: v })}
           placeholder="You are a helpful assistant..."
-          className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-y"
         />
       </div>
       <div>
-        <label className="block text-xs font-medium text-slate-700 mb-1">Model</label>
-        <select
+        <label style={labelStyle}>Model</label>
+        <GcSelect
           value={(config.model as string) || 'gpt-4o-mini'}
-          onChange={(e) => updateConfig({ model: e.target.value })}
-          className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+          onChange={(v) => updateConfig({ model: v })}
         >
           <optgroup label="OpenAI">
             <option value="gpt-4o">GPT-4o</option>
@@ -152,10 +274,10 @@ function AIActionConfigForm({ config, updateConfig }: ConfigFormProps) {
             <option value="claude-sonnet-4-20250514">Claude Sonnet 4</option>
             <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5</option>
           </optgroup>
-        </select>
+        </GcSelect>
       </div>
       <div>
-        <label className="block text-xs font-medium text-slate-700 mb-1">
+        <label style={labelStyle}>
           Temperature: {((config.temperature as number) ?? 0.7).toFixed(1)}
         </label>
         <input
@@ -165,28 +287,36 @@ function AIActionConfigForm({ config, updateConfig }: ConfigFormProps) {
           step="0.1"
           value={(config.temperature as number) ?? 0.7}
           onChange={(e) => updateConfig({ temperature: parseFloat(e.target.value) })}
-          className="w-full accent-indigo-600"
+          className="w-full"
+          style={{ accentColor: '#4902A2' }}
         />
       </div>
       <div>
-        <label className="block text-xs font-medium text-slate-700 mb-1">Max Tokens</label>
+        <label style={labelStyle}>Max Tokens</label>
         <input
           type="number"
           value={(config.max_tokens as number) ?? 1024}
           onChange={(e) => updateConfig({ max_tokens: parseInt(e.target.value, 10) || 1024 })}
           min={1}
           max={8192}
-          className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+          style={inputStyle}
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = '#4902A2';
+            e.currentTarget.style.boxShadow = '0 0 0 3px rgba(73,2,162,.08)';
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = '#e8e3f4';
+            e.currentTarget.style.boxShadow = 'none';
+          }}
         />
       </div>
       <div>
-        <label className="block text-xs font-medium text-slate-700 mb-1">Output Variable</label>
-        <input
-          type="text"
+        <label style={labelStyle}>Output Variable</label>
+        <GcInput
           value={(config.output_variable as string) || ''}
-          onChange={(e) => updateConfig({ output_variable: e.target.value })}
+          onChange={(v) => updateConfig({ output_variable: v })}
           placeholder="result"
-          className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm font-mono focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+          mono
         />
       </div>
     </>
@@ -199,46 +329,36 @@ function IntegrationConfigForm({ config, updateConfig }: ConfigFormProps) {
   return (
     <>
       <div>
-        <label className="block text-xs font-medium text-slate-700 mb-1">Service</label>
-        <select
-          value={service}
-          onChange={(e) => updateConfig({ service: e.target.value })}
-          className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-        >
+        <label style={labelStyle}>Service</label>
+        <GcSelect value={service} onChange={(v) => updateConfig({ service: v })}>
           <option value="email">Email</option>
           <option value="slack">Slack</option>
-        </select>
+        </GcSelect>
       </div>
       {service === 'email' && (
         <>
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">Recipients</label>
-            <input
-              type="text"
+            <label style={labelStyle}>Recipients</label>
+            <GcInput
               value={(config.recipients as string) || ''}
-              onChange={(e) => updateConfig({ recipients: e.target.value })}
+              onChange={(v) => updateConfig({ recipients: v })}
               placeholder="user@example.com"
-              className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">Subject</label>
-            <input
-              type="text"
+            <label style={labelStyle}>Subject</label>
+            <GcInput
               value={(config.subject as string) || ''}
-              onChange={(e) => updateConfig({ subject: e.target.value })}
+              onChange={(v) => updateConfig({ subject: v })}
               placeholder="Email subject"
-              className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">Body</label>
-            <textarea
-              rows={4}
+            <label style={labelStyle}>Body</label>
+            <GcTextarea
               value={(config.body as string) || ''}
-              onChange={(e) => updateConfig({ body: e.target.value })}
+              onChange={(v) => updateConfig({ body: v })}
               placeholder="Email body..."
-              className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-y"
             />
           </div>
         </>
@@ -246,23 +366,19 @@ function IntegrationConfigForm({ config, updateConfig }: ConfigFormProps) {
       {service === 'slack' && (
         <>
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">Channel</label>
-            <input
-              type="text"
+            <label style={labelStyle}>Channel</label>
+            <GcInput
               value={(config.channel as string) || ''}
-              onChange={(e) => updateConfig({ channel: e.target.value })}
+              onChange={(v) => updateConfig({ channel: v })}
               placeholder="#general"
-              className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">Message</label>
-            <textarea
-              rows={4}
+            <label style={labelStyle}>Message</label>
+            <GcTextarea
               value={(config.message as string) || ''}
-              onChange={(e) => updateConfig({ message: e.target.value })}
+              onChange={(v) => updateConfig({ message: v })}
               placeholder="Slack message..."
-              className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-y"
             />
           </div>
         </>
@@ -275,21 +391,19 @@ function DecisionConfigForm({ config, updateConfig }: ConfigFormProps) {
   return (
     <>
       <div>
-        <label className="block text-xs font-medium text-slate-700 mb-1">Left Operand</label>
-        <input
-          type="text"
+        <label style={labelStyle}>Left Operand</label>
+        <GcInput
           value={(config.left_operand as string) || ''}
-          onChange={(e) => updateConfig({ left_operand: e.target.value })}
+          onChange={(v) => updateConfig({ left_operand: v })}
           placeholder="{variable_name}"
-          className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm font-mono focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+          mono
         />
       </div>
       <div>
-        <label className="block text-xs font-medium text-slate-700 mb-1">Operator</label>
-        <select
+        <label style={labelStyle}>Operator</label>
+        <GcSelect
           value={(config.operator as string) || '=='}
-          onChange={(e) => updateConfig({ operator: e.target.value })}
-          className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+          onChange={(v) => updateConfig({ operator: v })}
         >
           <option value="==">== (equals)</option>
           <option value="!=">!= (not equals)</option>
@@ -298,16 +412,15 @@ function DecisionConfigForm({ config, updateConfig }: ConfigFormProps) {
           <option value=">=">{'>'} = (greater or equal)</option>
           <option value="<=">{'<'}= (less or equal)</option>
           <option value="contains">contains</option>
-        </select>
+        </GcSelect>
       </div>
       <div>
-        <label className="block text-xs font-medium text-slate-700 mb-1">Right Operand</label>
-        <input
-          type="text"
+        <label style={labelStyle}>Right Operand</label>
+        <GcInput
           value={(config.right_operand as string) || ''}
-          onChange={(e) => updateConfig({ right_operand: e.target.value })}
+          onChange={(v) => updateConfig({ right_operand: v })}
           placeholder="value"
-          className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm font-mono focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+          mono
         />
       </div>
     </>
@@ -318,23 +431,20 @@ function EscalationConfigForm({ config, updateConfig }: ConfigFormProps) {
   return (
     <>
       <div>
-        <label className="block text-xs font-medium text-slate-700 mb-1">Recipient Email</label>
-        <input
-          type="email"
+        <label style={labelStyle}>Recipient Email</label>
+        <GcInput
           value={(config.recipient_email as string) || ''}
-          onChange={(e) => updateConfig({ recipient_email: e.target.value })}
+          onChange={(v) => updateConfig({ recipient_email: v })}
           placeholder="manager@example.com"
-          className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+          type="email"
         />
       </div>
       <div>
-        <label className="block text-xs font-medium text-slate-700 mb-1">Message Template</label>
-        <textarea
-          rows={4}
+        <label style={labelStyle}>Message Template</label>
+        <GcTextarea
           value={(config.message_template as string) || ''}
-          onChange={(e) => updateConfig({ message_template: e.target.value })}
+          onChange={(v) => updateConfig({ message_template: v })}
           placeholder="Alert: {reason}..."
-          className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-y"
         />
       </div>
     </>
