@@ -3,6 +3,7 @@
 Runs inside a Celery worker (via asyncio.run) and manages its own DB sessions.
 """
 
+import json
 import logging
 import time
 import uuid
@@ -10,8 +11,10 @@ from collections import deque
 from datetime import datetime, timezone
 from decimal import Decimal
 
+import redis
 from sqlalchemy import select
 
+from app.core.config import settings
 from app.core.database import async_session
 from app.engine.graph import get_next_nodes, parse_workflow
 from app.engine.nodes.ai_action import AIActionNodeExecutor
@@ -24,6 +27,16 @@ from app.models.execution import Execution, ExecutionNodeLog
 from app.services.memory_service import get_agent_context, save_execution_memory
 
 logger = logging.getLogger(__name__)
+
+# Synchronous Redis client for publishing logs (runs inside Celery worker)
+_redis_client: redis.Redis | None = None
+
+
+def _get_redis() -> redis.Redis:
+    global _redis_client
+    if _redis_client is None:
+        _redis_client = redis.from_url(settings.REDIS_URL)
+    return _redis_client
 
 
 class WorkflowExecutor:
@@ -47,6 +60,25 @@ class WorkflowExecutor:
             "web_search": WebSearchNodeExecutor(),
         }
 
+    def _publish_log(
+        self,
+        message: str,
+        node_id: str | None = None,
+        status: str | None = None,
+    ) -> None:
+        """Publish a real-time log entry to Redis pub/sub."""
+        try:
+            channel = f"execution:{self.execution_id}:logs"
+            payload = json.dumps({
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "message": message,
+                "node_id": node_id,
+                "status": status or "info",
+            })
+            _get_redis().publish(channel, payload)
+        except Exception as exc:
+            logger.debug("Failed to publish execution log: %s", exc)
+
     async def execute(self) -> dict:
         """Execute the full workflow, updating the DB as we go."""
         exec_start = time.monotonic()
@@ -67,6 +99,8 @@ class WorkflowExecutor:
             except Exception as e:
                 logger.warning("Failed to load memory context: %s", e)
                 self.memory_context = ""
+
+        self._publish_log("Execution started", status="running")
 
         nodes, edges = parse_workflow(self.definition)
         if not nodes:
@@ -173,6 +207,12 @@ class WorkflowExecutor:
             input_data=config,
         )
 
+        self._publish_log(
+            f"Running node: {node_label or node_id}",
+            node_id=node_id,
+            status="running",
+        )
+
         try:
             result = await executor.execute(
                 config=config,
@@ -190,6 +230,11 @@ class WorkflowExecutor:
                 duration_ms=duration_ms,
                 output_data={"error": str(exc)},
                 error_message=str(exc),
+            )
+            self._publish_log(
+                f"Error in node {node_label or node_id}: {exc}",
+                node_id=node_id,
+                status="error",
             )
             return None, f"Node {node_label or node_id} ({node_type}) failed: {exc}"
 
@@ -230,7 +275,18 @@ class WorkflowExecutor:
         )
 
         if node_error:
+            self._publish_log(
+                f"Error in node {node_label or node_id}: {node_error}",
+                node_id=node_id,
+                status="error",
+            )
             return result, f"Node {node_label or node_id} ({node_type}) error: {node_error}"
+
+        self._publish_log(
+            f"Node {node_label or node_id} completed in {duration_ms}ms",
+            node_id=node_id,
+            status="success",
+        )
         return result, None
 
     # -- DB helpers (each opens its own session) --
@@ -325,6 +381,19 @@ class WorkflowExecutor:
     ) -> None:
         ended_at = datetime.now(timezone.utc)
         duration_ms = int((time.monotonic() - exec_start) * 1000)
+
+        if status == "success":
+            self._publish_log(
+                f"Execution completed in {duration_ms}ms",
+                status="success",
+            )
+        else:
+            self._publish_log(
+                f"Execution failed: {error_message or 'unknown error'}",
+                status="error",
+            )
+        # Signal stream end
+        self._publish_log("__STREAM_END__", status="done")
 
         async with async_session() as session:
             result = await session.execute(

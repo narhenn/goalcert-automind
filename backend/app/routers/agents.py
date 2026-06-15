@@ -20,6 +20,7 @@ from app.schemas.agent import (
     AgentUpdate,
 )
 from app.services.agent_generator import generate_agent_from_description
+from app.services.scheduler_service import schedule_agent, unschedule_agent
 
 logger = logging.getLogger(__name__)
 
@@ -230,6 +231,7 @@ async def update_agent(agent_id: str, data: AgentUpdate, db: DB, current_user: C
 @router.delete("/{agent_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_agent(agent_id: str, db: DB, current_user: CurrentUser):
     agent = await _get_agent_or_404(db, agent_id, current_user.id)
+    unschedule_agent(str(agent.id))
     await db.delete(agent)
     await db.flush()
 
@@ -238,6 +240,7 @@ async def delete_agent(agent_id: str, db: DB, current_user: CurrentUser):
 async def pause_agent(agent_id: str, db: DB, current_user: CurrentUser):
     agent = await _get_agent_or_404(db, agent_id, current_user.id)
     agent.status = "paused"
+    unschedule_agent(str(agent.id))
     await db.flush()
     await db.refresh(agent)
 
@@ -249,6 +252,8 @@ async def pause_agent(agent_id: str, db: DB, current_user: CurrentUser):
 async def resume_agent(agent_id: str, db: DB, current_user: CurrentUser):
     agent = await _get_agent_or_404(db, agent_id, current_user.id)
     agent.status = "active"
+    if agent.schedule_cron:
+        schedule_agent(str(agent.id), agent.schedule_cron, agent.schedule_timezone)
     await db.flush()
     await db.refresh(agent)
 

@@ -11,6 +11,7 @@ from app.models.agent import Agent
 from app.models.user import User
 from app.models.workflow import Workflow
 from app.schemas.workflow import WorkflowResponse, WorkflowUpdate
+from app.services.scheduler_service import schedule_agent, unschedule_agent
 
 router = APIRouter(prefix="/api/agents", tags=["workflows"])
 
@@ -85,5 +86,9 @@ async def deploy_workflow(agent_id: str, db: DB, current_user: CurrentUser):
     agent.status = "active"
     await db.flush()
     await db.refresh(workflow)
+
+    # Schedule the agent if it has a cron expression
+    if agent.schedule_cron:
+        schedule_agent(str(agent.id), agent.schedule_cron, agent.schedule_timezone)
 
     return _workflow_to_response(workflow)

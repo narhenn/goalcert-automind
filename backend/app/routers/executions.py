@@ -1,9 +1,12 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+import redis.asyncio as aioredis
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sse_starlette.sse import EventSourceResponse
 
+from app.core.config import settings
 from app.core.database import get_db
 from app.core.security import get_current_user
 from app.models.agent import Agent
@@ -208,3 +211,32 @@ async def get_execution_logs(
     )
     node_logs = result.scalars().all()
     return [_node_log_to_response(log) for log in node_logs]
+
+
+@router.get("/executions/{execution_id}/stream")
+async def stream_execution(execution_id: str, request: Request):
+    """SSE endpoint for real-time execution logs via Redis pub/sub.
+
+    No auth required - execution IDs are UUIDs (unguessable).
+    """
+    r = aioredis.from_url(settings.REDIS_URL)
+    pubsub = r.pubsub()
+    channel = f"execution:{execution_id}:logs"
+    await pubsub.subscribe(channel)
+
+    async def event_generator():
+        try:
+            async for message in pubsub.listen():
+                if await request.is_disconnected():
+                    break
+                if message["type"] == "message":
+                    data = message["data"].decode()
+                    yield {"data": data}
+                    # Close stream when executor signals completion
+                    if '"__STREAM_END__"' in data:
+                        break
+        finally:
+            await pubsub.unsubscribe(channel)
+            await r.aclose()
+
+    return EventSourceResponse(event_generator())

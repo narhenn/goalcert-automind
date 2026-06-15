@@ -18,4 +18,7 @@ celery_app.conf.update(
     task_reject_on_worker_lost=True,
     worker_prefetch_multiplier=1,
     include=["app.tasks.workflow_tasks"],
+    # RedBeat: dynamic Celery Beat schedules stored in Redis
+    beat_scheduler="redbeat.RedBeatScheduler",
+    redbeat_redis_url=settings.REDIS_URL,
 )

@@ -1,10 +1,11 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, PenTool, Pause, Play, Trash2, Clock, CheckCircle, Zap, Rocket, Loader2, ChevronDown, ChevronRight, Brain } from 'lucide-react';
+import { ArrowLeft, PenTool, Pause, Play, Trash2, Clock, CheckCircle, Zap, Rocket, Loader2, ChevronDown, ChevronRight, Brain, CalendarClock } from 'lucide-react';
 import { useAgent, useDeleteAgent } from '../hooks/useAgents';
 import { useExecutions, useTriggerExecution } from '../hooks/useExecutions';
 import AgentStatusBadge from '../components/agents/AgentStatusBadge';
 import LiveExecutionPanel from '../components/executions/LiveExecutionPanel';
-import { cn, formatDate, formatDuration, formatCost, timeAgo } from '../lib/utils';
+import LiveConsole from '../components/executions/LiveConsole';
+import { cn, formatDate, formatDuration, formatCost, timeAgo, cronToHuman, cronNextRun } from '../lib/utils';
 import apiClient from '../api/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -282,7 +283,7 @@ export default function AgentDetailPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div style={{ background: 'var(--gc-card)', border: '1px solid var(--gc-border)', borderRadius: 'var(--radius)', padding: 20 }}>
           <div className="flex items-center gap-2 mb-2">
             <CheckCircle style={{ width: 16, height: 16, color: 'var(--gc-primary)' }} />
@@ -309,6 +310,26 @@ export default function AgentDetailPage() {
           <p style={{ fontSize: 28, fontWeight: 800, color: 'var(--gc-text)', fontFamily: "'JetBrains Mono', monospace" }}>
             {agent.last_execution_at ? timeAgo(agent.last_execution_at) : 'Never'}
           </p>
+        </div>
+        <div style={{ background: 'var(--gc-card)', border: '1px solid var(--gc-border)', borderRadius: 'var(--radius)', padding: 20 }}>
+          <div className="flex items-center gap-2 mb-2">
+            <CalendarClock style={{ width: 16, height: 16, color: 'var(--gc-primary)' }} />
+            <span style={{ fontSize: 13, color: 'var(--gc-muted)' }}>Schedule</span>
+          </div>
+          {agent.schedule_cron ? (
+            <>
+              <p style={{ fontSize: 18, fontWeight: 800, color: 'var(--gc-text)', fontFamily: "'JetBrains Mono', monospace", lineHeight: 1.3 }}>
+                {cronToHuman(agent.schedule_cron)}
+              </p>
+              <p style={{ fontSize: 11, color: 'var(--gc-muted)', marginTop: 4, fontFamily: "'JetBrains Mono', monospace" }}>
+                Next run: {cronNextRun(agent.schedule_cron, agent.schedule_timezone)}
+              </p>
+            </>
+          ) : (
+            <p style={{ fontSize: 18, fontWeight: 800, color: 'var(--gc-muted)', fontFamily: "'JetBrains Mono', monospace" }}>
+              Manual
+            </p>
+          )}
         </div>
       </div>
 
@@ -419,6 +440,13 @@ export default function AgentDetailPage() {
         />
       )}
 
+      {/* Live Console - shows when there's an active execution */}
+      {hasActiveExec && (
+        <LiveConsole
+          executionId={recentExecutions.find((e) => e.status === 'running' || e.status === 'pending')?.id ?? null}
+        />
+      )}
+
       {/* Agent Info */}
       <div style={{ background: 'var(--gc-card)', border: '1px solid var(--gc-border)', borderRadius: 'var(--radius)', padding: 22, marginBottom: 22 }}>
         <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--gc-text)', marginBottom: 14 }}>Agent Details</h3>
@@ -433,7 +461,7 @@ export default function AgentDetailPage() {
           </div>
           <div>
             <dt style={{ color: 'var(--gc-muted)' }}>Schedule</dt>
-            <dd style={{ color: 'var(--gc-text)', fontWeight: 500 }}>{agent.schedule_cron || 'Manual trigger only'}</dd>
+            <dd style={{ color: 'var(--gc-text)', fontWeight: 500 }}>{agent.schedule_cron ? `${cronToHuman(agent.schedule_cron)} (${agent.schedule_cron})` : 'Manual trigger only'}</dd>
           </div>
           <div>
             <dt style={{ color: 'var(--gc-muted)' }}>Timezone</dt>
