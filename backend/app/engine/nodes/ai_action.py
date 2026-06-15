@@ -49,6 +49,14 @@ class AIActionNodeExecutor(BaseNodeExecutor):
         if system_prompt:
             system_prompt = interpolate(system_prompt, variables)
 
+        # Inject memory context from past executions
+        memory_context = kwargs.get("memory_context", "")
+        if memory_context:
+            if system_prompt:
+                system_prompt = f"{memory_context}\n\n{system_prompt}"
+            else:
+                system_prompt = memory_context
+
         # Determine which provider to use
         is_openai = _is_openai_model(model)
 

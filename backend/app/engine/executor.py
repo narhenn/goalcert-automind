@@ -21,6 +21,7 @@ from app.engine.nodes.integration import IntegrationNodeExecutor
 from app.engine.nodes.trigger import TriggerNodeExecutor
 from app.engine.nodes.web_search import WebSearchNodeExecutor
 from app.models.execution import Execution, ExecutionNodeLog
+from app.services.memory_service import get_agent_context, save_execution_memory
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +37,7 @@ class WorkflowExecutor:
         self.definition = workflow_definition
         self.variables: dict = variables or {}
         self.total_cost: float = 0.0
+        self.memory_context: str = ""
         self.node_executors = {
             "trigger": TriggerNodeExecutor(),
             "ai_action": AIActionNodeExecutor(),
@@ -50,12 +52,21 @@ class WorkflowExecutor:
         exec_start = time.monotonic()
         started_at = datetime.now(timezone.utc)
 
-        # Mark execution as running
+        # Mark execution as running and load memory context
         async with async_session() as session:
             execution = await self._get_execution(session)
             execution.status = "running"
             execution.started_at = started_at
             await session.commit()
+
+            # Load agent memory context for AI nodes
+            try:
+                self.memory_context = await get_agent_context(
+                    session, str(execution.agent_id)
+                )
+            except Exception as e:
+                logger.warning("Failed to load memory context: %s", e)
+                self.memory_context = ""
 
         nodes, edges = parse_workflow(self.definition)
         if not nodes:
@@ -167,6 +178,7 @@ class WorkflowExecutor:
                 config=config,
                 variables=self.variables,
                 triggered_by=self.variables.get("triggered_by", "manual"),
+                memory_context=self.memory_context,
             )
         except Exception as exc:
             logger.exception("Node %s (%s) failed", node_id, node_type)
@@ -336,5 +348,37 @@ class WorkflowExecutor:
             agent = agent_result.scalar_one_or_none()
             if agent:
                 agent.last_execution_at = ended_at
+
+            # Save execution memory
+            try:
+                # Count nodes that were executed
+                from app.models.execution import ExecutionNodeLog
+
+                node_count_result = await session.execute(
+                    select(ExecutionNodeLog)
+                    .where(ExecutionNodeLog.execution_id == execution.id)
+                )
+                node_count = len(node_count_result.scalars().all())
+
+                # Extract key outputs (top-level non-internal variables)
+                key_outputs = {
+                    k: v
+                    for k, v in self.variables.items()
+                    if k not in ("triggered_by", "branch", "condition_result")
+                    and not str(k).startswith("_")
+                }
+
+                await save_execution_memory(
+                    session=session,
+                    agent_id=str(execution.agent_id),
+                    execution_id=str(execution.id),
+                    agent_name=agent.name if agent else "Unknown",
+                    status=status,
+                    duration_ms=duration_ms,
+                    node_count=node_count,
+                    key_outputs=key_outputs,
+                )
+            except Exception as e:
+                logger.warning("Failed to save execution memory: %s", e)
 
             await session.commit()

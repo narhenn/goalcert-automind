@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, PenTool, Pause, Play, Trash2, Clock, CheckCircle, Zap, Rocket, Loader2, ChevronDown, ChevronRight } from 'lucide-react';
+import { ArrowLeft, PenTool, Pause, Play, Trash2, Clock, CheckCircle, Zap, Rocket, Loader2, ChevronDown, ChevronRight, Brain } from 'lucide-react';
 import { useAgent, useDeleteAgent } from '../hooks/useAgents';
 import { useExecutions, useTriggerExecution } from '../hooks/useExecutions';
 import AgentStatusBadge from '../components/agents/AgentStatusBadge';
@@ -8,6 +8,7 @@ import { cn, formatDate, formatDuration, formatCost, timeAgo } from '../lib/util
 import apiClient from '../api/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import { useAgentMemory, useClearAgentMemory } from '../hooks/useMemory';
 
 const execStatusConfig: Record<string, { bg: string; color: string; label: string; pulse?: boolean }> = {
   success: { bg: 'rgba(22,163,74,.12)', color: '#16a34a', label: 'Success' },
@@ -29,6 +30,8 @@ export default function AgentDetailPage() {
   const [toggling, setToggling] = useState(false);
   const [runAlert, setRunAlert] = useState(false);
   const [expandedExecId, setExpandedExecId] = useState<string | null>(null);
+  const { data: memoryData, isLoading: loadingMemory } = useAgentMemory(id!);
+  const clearMemory = useClearAgentMemory(id!);
 
   // Auto-poll when there are pending/running executions
   const hasActiveExec = (executions || []).some((e) => e.status === 'pending' || e.status === 'running');
@@ -307,6 +310,106 @@ export default function AgentDetailPage() {
             {agent.last_execution_at ? timeAgo(agent.last_execution_at) : 'Never'}
           </p>
         </div>
+      </div>
+
+      {/* Agent Memory */}
+      <div style={{ background: 'var(--gc-card)', border: '1px solid var(--gc-border)', borderRadius: 'var(--radius)', padding: 22, marginBottom: 22 }}>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Brain style={{ width: 18, height: 18, color: 'var(--gc-primary)' }} />
+            <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--gc-text)', margin: 0 }}>Agent Memory</h3>
+            {memoryData && memoryData.total > 0 && (
+              <span style={{
+                fontSize: 10,
+                fontWeight: 700,
+                color: 'var(--gc-primary)',
+                background: 'rgba(73,2,162,.08)',
+                padding: '2px 8px',
+                borderRadius: 10,
+              }}>
+                {memoryData.total} {memoryData.total === 1 ? 'memory' : 'memories'}
+              </span>
+            )}
+          </div>
+          {memoryData && memoryData.total > 0 && (
+            <button
+              onClick={() => {
+                if (confirm('Clear all agent memories? This cannot be undone.')) {
+                  clearMemory.mutate();
+                }
+              }}
+              disabled={clearMemory.isPending}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+                fontSize: 11,
+                fontWeight: 600,
+                color: '#e11d48',
+                background: 'rgba(225,29,72,.08)',
+                border: '1px solid rgba(225,29,72,.2)',
+                borderRadius: 8,
+                padding: '5px 12px',
+                cursor: clearMemory.isPending ? 'not-allowed' : 'pointer',
+                opacity: clearMemory.isPending ? 0.6 : 1,
+              }}
+            >
+              <Trash2 style={{ width: 12, height: 12 }} />
+              Clear Memory
+            </button>
+          )}
+        </div>
+
+        {loadingMemory ? (
+          <div className="flex items-center justify-center py-6">
+            <Loader2 style={{ width: 18, height: 18, color: 'var(--gc-muted)' }} className="animate-spin" />
+          </div>
+        ) : !memoryData || memoryData.memories.length === 0 ? (
+          <div style={{
+            textAlign: 'center',
+            padding: '28px 16px',
+            borderRadius: 10,
+            background: 'rgba(73,2,162,.03)',
+            border: '1px dashed var(--gc-border)',
+          }}>
+            <Brain style={{ width: 28, height: 28, color: 'var(--gc-muted)', margin: '0 auto 10px', opacity: 0.5 }} />
+            <p style={{ fontSize: 13, color: 'var(--gc-muted)', margin: 0 }}>
+              No memories yet. Run the agent to start building context.
+            </p>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {memoryData.memories.map((mem) => (
+              <div
+                key={mem.id}
+                style={{
+                  padding: '12px 16px',
+                  borderRadius: 10,
+                  background: 'rgba(73,2,162,.04)',
+                  border: '1px solid rgba(73,2,162,.08)',
+                }}
+              >
+                <div className="flex items-center gap-2" style={{ marginBottom: 6 }}>
+                  <span style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: 'var(--gc-primary)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '.5px',
+                  }}>
+                    {mem.memory_type.replace('_', ' ')}
+                  </span>
+                  <span style={{ fontSize: 11, color: 'var(--gc-muted)' }}>
+                    {timeAgo(mem.created_at)}
+                  </span>
+                </div>
+                <p style={{ fontSize: 13, color: 'var(--gc-text)', margin: 0, lineHeight: 1.5 }}>
+                  {mem.summary}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Latest Execution Panel - shows inline when there's an active/recent execution */}
