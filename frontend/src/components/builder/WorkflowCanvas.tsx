@@ -20,6 +20,7 @@ import AIActionNode from './nodes/AIActionNode';
 import IntegrationNode from './nodes/IntegrationNode';
 import DecisionNode from './nodes/DecisionNode';
 import EscalationNode from './nodes/EscalationNode';
+import WebSearchNode from './nodes/WebSearchNode';
 import { useWorkflow, useSaveWorkflow, useDeployWorkflow } from '../../hooks/useWorkflow';
 import { useAgent } from '../../hooks/useAgents';
 import { useTriggerExecution } from '../../hooks/useExecutions';
@@ -34,6 +35,7 @@ const nodeTypes: NodeTypes = {
   integration: IntegrationNode,
   decision: DecisionNode,
   escalation: EscalationNode,
+  web_search: WebSearchNode,
 };
 
 const defaultConfigs: Record<string, Record<string, unknown>> = {
@@ -42,6 +44,7 @@ const defaultConfigs: Record<string, Record<string, unknown>> = {
   integration: { service: 'email', action: 'send' },
   decision: { left_operand: '', operator: '==', right_operand: '' },
   escalation: { recipient_email: '', message_template: '' },
+  web_search: { query: '', max_results: 5, output_variable: 'search_results' },
 };
 
 const defaultLabels: Record<string, string> = {
@@ -50,6 +53,7 @@ const defaultLabels: Record<string, string> = {
   integration: 'Integration',
   decision: 'Decision',
   escalation: 'Escalation',
+  web_search: 'Web Search',
 };
 
 let nodeIdCounter = 0;

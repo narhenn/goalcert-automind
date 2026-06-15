@@ -1,6 +1,8 @@
+import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
 from sqlalchemy import case, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,6 +19,9 @@ from app.schemas.agent import (
     AgentResponse,
     AgentUpdate,
 )
+from app.services.agent_generator import generate_agent_from_description
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/agents", tags=["agents"])
 
@@ -116,6 +121,79 @@ async def create_agent(data: AgentCreate, db: DB, current_user: CurrentUser):
         if template and template.workflow_definition:
             workflow_definition = template.workflow_definition
 
+    workflow = Workflow(
+        agent_id=agent.id,
+        definition=workflow_definition,
+    )
+    db.add(workflow)
+    await db.flush()
+    await db.refresh(agent)
+
+    return _agent_to_response(agent, 0, None)
+
+
+class GenerateAgentRequest(BaseModel):
+    description: str
+
+
+@router.post("/generate", response_model=AgentResponse, status_code=status.HTTP_201_CREATED)
+async def generate_agent(data: GenerateAgentRequest, db: DB, current_user: CurrentUser):
+    """Generate a complete agent workflow from a natural language description."""
+    if not data.description.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Description is required",
+        )
+
+    try:
+        result = await generate_agent_from_description(data.description)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        )
+    except Exception as exc:
+        logger.exception("Agent generation failed")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate agent: {exc}",
+        )
+
+    # Create agent from generated result
+    agent_name = result.get("agent_name", "Generated Agent")
+    agent_type = result.get("agent_type", "custom")
+    agent_description = result.get("agent_description", data.description)
+
+    # Validate agent_type
+    if agent_type not in ("sales", "marketing", "support", "custom"):
+        agent_type = "custom"
+
+    agent = Agent(
+        user_id=current_user.id,
+        name=agent_name,
+        type=agent_type,
+        description=agent_description,
+    )
+
+    # Apply schedule if provided
+    schedule = result.get("schedule", {})
+    if schedule.get("cron"):
+        agent.schedule_cron = schedule["cron"]
+    if schedule.get("timezone"):
+        agent.schedule_timezone = schedule["timezone"]
+
+    db.add(agent)
+    try:
+        await db.flush()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"An agent named '{agent_name}' already exists",
+        )
+
+    # Create workflow with generated definition
+    workflow_definition = result.get("workflow", {"nodes": [], "edges": [], "viewport": {"x": 0, "y": 0, "zoom": 1}})
     workflow = Workflow(
         agent_id=agent.id,
         definition=workflow_definition,

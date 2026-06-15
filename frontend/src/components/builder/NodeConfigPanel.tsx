@@ -111,6 +111,7 @@ export default function NodeConfigPanel({ nodes, onUpdateNodeData }: NodeConfigP
         {node.type === 'integration' && <IntegrationConfigForm config={config} updateConfig={updateConfig} />}
         {node.type === 'decision' && <DecisionConfigForm config={config} updateConfig={updateConfig} />}
         {node.type === 'escalation' && <EscalationConfigForm config={config} updateConfig={updateConfig} />}
+        {node.type === 'web_search' && <WebSearchConfigForm config={config} updateConfig={updateConfig} />}
       </div>
     </div>
   );
@@ -445,6 +446,53 @@ function EscalationConfigForm({ config, updateConfig }: ConfigFormProps) {
           value={(config.message_template as string) || ''}
           onChange={(v) => updateConfig({ message_template: v })}
           placeholder="Alert: {reason}..."
+        />
+      </div>
+    </>
+  );
+}
+
+function WebSearchConfigForm({ config, updateConfig }: ConfigFormProps) {
+  return (
+    <>
+      <div>
+        <label style={labelStyle}>Search Query</label>
+        <GcTextarea
+          rows={3}
+          value={(config.query as string) || ''}
+          onChange={(v) => updateConfig({ query: v })}
+          placeholder="Search for {topic}..."
+        />
+        <p style={{ fontSize: '11px', color: '#837b97', marginTop: '4px' }}>
+          Use {'{'} variable {'}'} placeholders for dynamic queries
+        </p>
+      </div>
+      <div>
+        <label style={labelStyle}>Max Results</label>
+        <input
+          type="number"
+          value={(config.max_results as number) ?? 5}
+          onChange={(e) => updateConfig({ max_results: parseInt(e.target.value, 10) || 5 })}
+          min={1}
+          max={20}
+          style={inputStyle}
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = '#4902A2';
+            e.currentTarget.style.boxShadow = '0 0 0 3px rgba(73,2,162,.08)';
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = '#e8e3f4';
+            e.currentTarget.style.boxShadow = 'none';
+          }}
+        />
+      </div>
+      <div>
+        <label style={labelStyle}>Output Variable</label>
+        <GcInput
+          value={(config.output_variable as string) || ''}
+          onChange={(v) => updateConfig({ output_variable: v })}
+          placeholder="search_results"
+          mono
         />
       </div>
     </>

@@ -46,6 +46,19 @@ export function useCreateAgent() {
   });
 }
 
+export function useGenerateAgent() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (description: string) => {
+      const { data } = await apiClient.post('/agents/generate', { description });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['agents'] });
+    },
+  });
+}
+
 export function useDeleteAgent() {
   const queryClient = useQueryClient();
   return useMutation({

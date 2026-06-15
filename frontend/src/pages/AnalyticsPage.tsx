@@ -1,6 +1,6 @@
 import { useAgents, useDashboardStats } from '../hooks/useAgents';
 import { useAuthStore } from '../stores/authStore';
-import { BarChart3, TrendingUp, DollarSign, Clock, Bot, CheckCircle, XCircle } from 'lucide-react';
+import { BarChart3, TrendingUp, DollarSign, Bot, CheckCircle } from 'lucide-react';
 
 export default function AnalyticsPage() {
   const { data: stats } = useDashboardStats();

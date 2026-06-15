@@ -150,3 +150,9 @@ export interface EscalationConfig {
   recipient_email: string;
   message_template: string;
 }
+
+export interface WebSearchConfig {
+  query: string;
+  max_results: number;
+  output_variable?: string;
+}

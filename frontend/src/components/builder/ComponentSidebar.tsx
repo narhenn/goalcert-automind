@@ -1,4 +1,4 @@
-import { Clock, Brain, Plug, GitBranch, AlertTriangle } from 'lucide-react';
+import { Clock, Brain, Plug, GitBranch, AlertTriangle, Search } from 'lucide-react';
 import type { DragEvent } from 'react';
 
 const components = [
@@ -37,6 +37,15 @@ const components = [
     accent: '#d97706',
     bg: '#fef9ed',
     bgHover: '#fef3d9',
+  },
+  {
+    type: 'web_search',
+    label: 'Web Search',
+    description: 'Search the web for real-time information',
+    icon: Search,
+    accent: '#0d9488',
+    bg: '#f0fdfa',
+    bgHover: '#ccfbf1',
   },
   {
     type: 'escalation',

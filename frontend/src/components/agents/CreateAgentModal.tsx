@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Briefcase, PenTool, Mail, Users } from 'lucide-react';
-import { useCreateAgent, useTemplates } from '../../hooks/useAgents';
+import { X, Briefcase, PenTool, Mail, Users, Sparkles, Loader2 } from 'lucide-react';
+import { useCreateAgent, useGenerateAgent, useTemplates } from '../../hooks/useAgents';
 import type { AgentTemplate } from '../../types';
 
 const agentTypes = [
@@ -23,14 +23,32 @@ export default function CreateAgentModal({ isOpen, onClose, preselectedTemplate 
   const [type, setType] = useState(preselectedTemplate?.type || 'custom');
   const [selectedTemplate, setSelectedTemplate] = useState<string | undefined>(preselectedTemplate?.id);
   const [error, setError] = useState('');
+  const [aiDescription, setAiDescription] = useState('');
+  const [aiError, setAiError] = useState('');
 
   const navigate = useNavigate();
   const createAgent = useCreateAgent();
+  const generateAgent = useGenerateAgent();
   const { data: templates } = useTemplates();
 
   const filteredTemplates = templates?.filter((t) => t.type === type) || [];
 
   if (!isOpen) return null;
+
+  const handleGenerate = async () => {
+    setAiError('');
+    if (!aiDescription.trim()) {
+      setAiError('Please describe what you want your agent to do');
+      return;
+    }
+    try {
+      const result = await generateAgent.mutateAsync(aiDescription.trim());
+      onClose();
+      navigate(`/agents/${result.id}/builder`);
+    } catch (err: any) {
+      setAiError(err.response?.data?.detail || 'Failed to generate agent. Try again.');
+    }
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -100,8 +118,99 @@ export default function CreateAgentModal({ isOpen, onClose, preselectedTemplate 
           </button>
         </div>
 
+        {/* AI Generation Section */}
+        <div style={{ padding: '22px 22px 0 22px' }}>
+          <div style={{
+            background: 'linear-gradient(135deg, rgba(73,2,162,.04), rgba(124,58,237,.06))',
+            border: '1px solid rgba(73,2,162,.12)',
+            borderRadius: 12,
+            padding: 18,
+          }}>
+            <div className="flex items-center gap-2" style={{ marginBottom: 12 }}>
+              <Sparkles style={{ width: 16, height: 16, color: '#4902A2' }} />
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#4902A2' }}>
+                Describe your agent
+              </span>
+            </div>
+            <textarea
+              value={aiDescription}
+              onChange={(e) => setAiDescription(e.target.value)}
+              rows={3}
+              style={{
+                width: '100%',
+                border: '1px solid rgba(73,2,162,.15)',
+                borderRadius: 10,
+                padding: '10px 14px',
+                fontSize: 13,
+                color: 'var(--gc-text)',
+                outline: 'none',
+                background: '#fff',
+                resize: 'none',
+                transition: 'border-color .15s',
+              }}
+              onFocus={(e) => (e.currentTarget.style.borderColor = '#4902A2')}
+              onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(73,2,162,.15)')}
+              placeholder="e.g., Every morning, search for the latest AI news, summarize the top 5 stories, and email the summary to the team"
+              disabled={generateAgent.isPending}
+            />
+            {aiError && (
+              <div style={{
+                color: 'var(--gc-red)',
+                fontSize: 12,
+                marginTop: 8,
+              }}>
+                {aiError}
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={handleGenerate}
+              disabled={generateAgent.isPending || !aiDescription.trim()}
+              style={{
+                width: '100%',
+                marginTop: 12,
+                padding: '10px 16px',
+                borderRadius: 11,
+                border: 'none',
+                background: 'var(--gc-primary)',
+                color: '#ffffff',
+                fontSize: 12.5,
+                fontWeight: 600,
+                cursor: generateAgent.isPending || !aiDescription.trim() ? 'not-allowed' : 'pointer',
+                opacity: generateAgent.isPending || !aiDescription.trim() ? 0.6 : 1,
+                transition: 'background .15s, opacity .15s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+              }}
+            >
+              {generateAgent.isPending ? (
+                <>
+                  <Loader2 style={{ width: 14, height: 14, animation: 'spin 1s linear infinite' }} />
+                  Generating workflow...
+                </>
+              ) : (
+                <>
+                  <Sparkles style={{ width: 14, height: 14 }} />
+                  Generate Agent
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Divider */}
+          <div className="flex items-center gap-3" style={{ margin: '18px 0' }}>
+            <div style={{ flex: 1, height: 1, background: 'var(--gc-border)' }} />
+            <span style={{ fontSize: 11, color: 'var(--gc-muted)', fontWeight: 500 }}>
+              Or create manually
+            </span>
+            <div style={{ flex: 1, height: 1, background: 'var(--gc-border)' }} />
+          </div>
+        </div>
+
         {/* Body */}
-        <form onSubmit={handleSubmit} style={{ padding: 22 }}>
+        <form onSubmit={handleSubmit} style={{ padding: '0 22px 22px 22px' }}>
           {error && (
             <div style={{
               background: 'rgba(225,29,72,.08)',
