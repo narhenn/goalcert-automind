@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, PenTool, Pause, Play, Trash2, Clock, CheckCircle, Zap, Rocket, Loader2, ChevronDown, ChevronRight, Brain, CalendarClock } from 'lucide-react';
+import { ArrowLeft, PenTool, Pause, Play, Trash2, Clock, CheckCircle, Zap, Rocket, Loader2, ChevronDown, ChevronRight, Brain, CalendarClock, MessageCircle } from 'lucide-react';
 import { useAgent, useDeleteAgent } from '../hooks/useAgents';
 import { useExecutions, useTriggerExecution } from '../hooks/useExecutions';
 import AgentStatusBadge from '../components/agents/AgentStatusBadge';
@@ -10,6 +10,7 @@ import apiClient from '../api/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useAgentMemory, useClearAgentMemory } from '../hooks/useMemory';
+import AgentChat from '../components/chat/AgentChat';
 
 const execStatusConfig: Record<string, { bg: string; color: string; label: string; pulse?: boolean }> = {
   success: { bg: 'rgba(22,163,74,.12)', color: '#16a34a', label: 'Success' },
@@ -33,6 +34,7 @@ export default function AgentDetailPage() {
   const [expandedExecId, setExpandedExecId] = useState<string | null>(null);
   const { data: memoryData, isLoading: loadingMemory } = useAgentMemory(id!);
   const clearMemory = useClearAgentMemory(id!);
+  const [showChat, setShowChat] = useState(false);
 
   // Auto-poll when there are pending/running executions
   const hasActiveExec = (executions || []).some((e) => e.status === 'pending' || e.status === 'running');
@@ -237,6 +239,25 @@ export default function AgentDetailPage() {
           >
             <PenTool style={{ width: 14, height: 14 }} />
             Edit Workflow
+          </button>
+          <button
+            onClick={() => setShowChat(true)}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              background: 'rgba(255,255,255,.18)',
+              color: '#ffffff',
+              padding: '8px 16px',
+              borderRadius: 11,
+              fontSize: 12.5,
+              fontWeight: 600,
+              border: '1px solid rgba(255,255,255,.3)',
+              cursor: 'pointer',
+            }}
+          >
+            <MessageCircle style={{ width: 14, height: 14 }} />
+            Chat
           </button>
           <button
             onClick={handleTogglePause}
@@ -573,6 +594,15 @@ export default function AgentDetailPage() {
           </div>
         )}
       </div>
+
+      {/* Agent Chat Panel */}
+      {showChat && (
+        <AgentChat
+          agentId={agent.id}
+          agentName={agent.name}
+          onClose={() => setShowChat(false)}
+        />
+      )}
     </div>
   );
 }

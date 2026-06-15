@@ -21,6 +21,7 @@ import IntegrationNode from './nodes/IntegrationNode';
 import DecisionNode from './nodes/DecisionNode';
 import EscalationNode from './nodes/EscalationNode';
 import WebSearchNode from './nodes/WebSearchNode';
+import CodeExecNode from './nodes/CodeExecNode';
 import { useWorkflow, useSaveWorkflow, useDeployWorkflow } from '../../hooks/useWorkflow';
 import { useAgent } from '../../hooks/useAgents';
 import { useTriggerExecution } from '../../hooks/useExecutions';
@@ -36,6 +37,7 @@ const nodeTypes: NodeTypes = {
   decision: DecisionNode,
   escalation: EscalationNode,
   web_search: WebSearchNode,
+  code_exec: CodeExecNode,
 };
 
 const defaultConfigs: Record<string, Record<string, unknown>> = {
@@ -45,6 +47,7 @@ const defaultConfigs: Record<string, Record<string, unknown>> = {
   decision: { left_operand: '', operator: '==', right_operand: '' },
   escalation: { recipient_email: '', message_template: '' },
   web_search: { query: '', max_results: 5, output_variable: 'search_results' },
+  code_exec: { code: '', timeout: 10, output_variable: 'code_result' },
 };
 
 const defaultLabels: Record<string, string> = {
@@ -54,6 +57,7 @@ const defaultLabels: Record<string, string> = {
   decision: 'Decision',
   escalation: 'Escalation',
   web_search: 'Web Search',
+  code_exec: 'Code Exec',
 };
 
 let nodeIdCounter = 0;

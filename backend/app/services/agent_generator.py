@@ -23,6 +23,7 @@ A workflow consists of nodes connected by edges. Available node types:
 4. **decision** - Branches based on condition. Config: { left_operand: "{variable}", operator: "=="|"!="|">"|"<"|"contains", right_operand: "value" }
 5. **escalation** - Notifies a human. Config: { recipient_email: "email", message_template: "message with {variables}" }
 6. **web_search** - Searches the web. Config: { query: "search query with {variable} placeholders", max_results: 5, output_variable: "variable_name" }
+7. **code_exec** - Executes Python code in a sandboxed environment. Config: { code: "python code (can use {variable} placeholders)", timeout: 10, output_variable: "variable_name" }. The code runs in a subprocess. Local variables of simple types (str, int, float, bool, list, dict) are captured as output. No OS, subprocess, or network imports allowed.
 
 IMPORTANT RULES:
 - Every workflow MUST start with exactly one trigger node

@@ -22,6 +22,7 @@ from app.engine.nodes.decision import DecisionNodeExecutor
 from app.engine.nodes.escalation import EscalationNodeExecutor
 from app.engine.nodes.integration import IntegrationNodeExecutor
 from app.engine.nodes.trigger import TriggerNodeExecutor
+from app.engine.nodes.code_exec import CodeExecNodeExecutor
 from app.engine.nodes.web_search import WebSearchNodeExecutor
 from app.models.execution import Execution, ExecutionNodeLog
 from app.services.memory_service import get_agent_context, save_execution_memory
@@ -58,6 +59,7 @@ class WorkflowExecutor:
             "decision": DecisionNodeExecutor(),
             "escalation": EscalationNodeExecutor(),
             "web_search": WebSearchNodeExecutor(),
+            "code_exec": CodeExecNodeExecutor(),
         }
 
     def _publish_log(
@@ -245,7 +247,7 @@ class WorkflowExecutor:
         output_data = result
         node_error = result.get("error") if isinstance(result, dict) else None
 
-        if node_type in ("ai_action", "web_search"):
+        if node_type in ("ai_action", "web_search", "code_exec"):
             output_vars = result.get("output_variables", {})
             llm_usage = result.get("llm_usage")
             if llm_usage:

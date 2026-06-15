@@ -112,6 +112,7 @@ export default function NodeConfigPanel({ nodes, onUpdateNodeData }: NodeConfigP
         {node.type === 'decision' && <DecisionConfigForm config={config} updateConfig={updateConfig} />}
         {node.type === 'escalation' && <EscalationConfigForm config={config} updateConfig={updateConfig} />}
         {node.type === 'web_search' && <WebSearchConfigForm config={config} updateConfig={updateConfig} />}
+        {node.type === 'code_exec' && <CodeExecConfigForm config={config} updateConfig={updateConfig} />}
       </div>
     </div>
   );
@@ -492,6 +493,72 @@ function WebSearchConfigForm({ config, updateConfig }: ConfigFormProps) {
           value={(config.output_variable as string) || ''}
           onChange={(v) => updateConfig({ output_variable: v })}
           placeholder="search_results"
+          mono
+        />
+      </div>
+    </>
+  );
+}
+
+function CodeExecConfigForm({ config, updateConfig }: ConfigFormProps) {
+  return (
+    <>
+      <div>
+        <label style={labelStyle}>Python Code</label>
+        <textarea
+          rows={8}
+          value={(config.code as string) || ''}
+          onChange={(e) => updateConfig({ code: e.target.value })}
+          placeholder="# Write Python code here&#10;result = 2 + 2"
+          style={{
+            ...inputStyle,
+            resize: 'vertical' as const,
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: '12px',
+            lineHeight: '1.6',
+            tabSize: 4,
+          }}
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = '#4902A2';
+            e.currentTarget.style.boxShadow = '0 0 0 3px rgba(73,2,162,.08)';
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = '#e8e3f4';
+            e.currentTarget.style.boxShadow = 'none';
+          }}
+        />
+        <p style={{ fontSize: '11px', color: '#837b97', marginTop: '4px' }}>
+          Use {'{'} variable {'}'} placeholders. Local variables are captured as output.
+        </p>
+      </div>
+      <div>
+        <label style={labelStyle}>Timeout (seconds)</label>
+        <input
+          type="number"
+          value={(config.timeout as number) ?? 10}
+          onChange={(e) => updateConfig({ timeout: parseInt(e.target.value, 10) || 10 })}
+          min={1}
+          max={30}
+          style={inputStyle}
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = '#4902A2';
+            e.currentTarget.style.boxShadow = '0 0 0 3px rgba(73,2,162,.08)';
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = '#e8e3f4';
+            e.currentTarget.style.boxShadow = 'none';
+          }}
+        />
+        <p style={{ fontSize: '11px', color: '#837b97', marginTop: '4px' }}>
+          Max 30 seconds
+        </p>
+      </div>
+      <div>
+        <label style={labelStyle}>Output Variable</label>
+        <GcInput
+          value={(config.output_variable as string) || ''}
+          onChange={(v) => updateConfig({ output_variable: v })}
+          placeholder="code_result"
           mono
         />
       </div>
