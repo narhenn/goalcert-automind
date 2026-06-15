@@ -13,8 +13,8 @@ const agentNav = [
 ];
 
 const insightNav = [
-  { to: '#', label: 'Analytics', icon: BarChart3 },
-  { to: '#', label: 'Settings', icon: Settings },
+  { to: '/analytics', label: 'Analytics', icon: BarChart3 },
+  { to: '/settings', label: 'Settings', icon: Settings },
 ];
 
 function NavSection({ label, items }: { label: string; items: typeof mainNav }) {

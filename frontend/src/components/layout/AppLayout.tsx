@@ -9,6 +9,8 @@ const pageTitles: Record<string, string> = {
   '/': 'Dashboard',
   '/templates': 'Templates',
   '/integrations': 'Integrations',
+  '/analytics': 'Analytics',
+  '/settings': 'Settings',
 };
 
 function Clock() {

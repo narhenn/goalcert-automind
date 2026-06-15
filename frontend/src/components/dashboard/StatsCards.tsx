@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { Bot, CheckCircle, Zap, Clock } from 'lucide-react';
 import type { DashboardStats } from '../../types';
 
@@ -12,6 +13,7 @@ const cards = [
     label: 'Active Agents',
     icon: Bot,
     cta: 'View all',
+    link: '/analytics',
     format: (v: number) => String(v),
   },
   {
@@ -19,6 +21,7 @@ const cards = [
     label: 'Tasks Completed',
     icon: CheckCircle,
     cta: 'History',
+    link: '/analytics',
     format: (v: number) => String(v),
   },
   {
@@ -26,6 +29,7 @@ const cards = [
     label: 'Estimated Savings',
     icon: Zap,
     cta: 'Details',
+    link: '/analytics',
     format: (v: number) => {
       if (v >= 1000) return `$${(v / 1000).toFixed(1)}K`;
       return `$${v.toFixed(0)}`;
@@ -36,11 +40,13 @@ const cards = [
     label: 'Avg Response Time',
     icon: Clock,
     cta: 'Metrics',
+    link: '/analytics',
     format: (v: number) => `${v.toFixed(1)}s`,
   },
 ];
 
 export default function StatsCards({ stats, isLoading }: StatsCardsProps) {
+  const navigate = useNavigate();
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {cards.map((card) => {
@@ -107,17 +113,21 @@ export default function StatsCards({ stats, isLoading }: StatsCardsProps) {
                 </p>
 
                 {/* CTA pill bottom-right */}
-                <span style={{
-                  position: 'absolute',
-                  bottom: 14,
-                  right: 16,
-                  fontSize: 10,
-                  fontWeight: 600,
-                  color: 'var(--gc-primary)',
-                  background: '#ffffff',
-                  padding: '4px 10px',
-                  borderRadius: 20,
-                }}>
+                <span
+                  onClick={(e) => { e.stopPropagation(); navigate(card.link); }}
+                  style={{
+                    position: 'absolute',
+                    bottom: 14,
+                    right: 16,
+                    fontSize: 10,
+                    fontWeight: 600,
+                    color: 'var(--gc-primary)',
+                    background: '#ffffff',
+                    padding: '4px 10px',
+                    borderRadius: 20,
+                    cursor: 'pointer',
+                  }}
+                >
                   {card.cta}
                 </span>
 
