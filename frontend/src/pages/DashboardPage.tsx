@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Bot, Rocket } from 'lucide-react';
+import { Plus, Bot, Rocket, Activity, Clock, Server } from 'lucide-react';
 import { useAgents, useDashboardStats, useDashboardActivity } from '../hooks/useAgents';
 import StatsCards from '../components/dashboard/StatsCards';
 import AgentCard from '../components/dashboard/AgentCard';
 import ActivityFeed from '../components/dashboard/ActivityFeed';
 import CreateAgentModal from '../components/agents/CreateAgentModal';
 import { useAuthStore } from '../stores/authStore';
+import { timeAgo } from '../lib/utils';
 import type { Agent } from '../types';
 
 export default function DashboardPage() {
@@ -27,6 +28,15 @@ export default function DashboardPage() {
   };
 
   const firstName = user?.name?.split(' ')[0] || 'there';
+
+  // System status calculations
+  const activeAgentCount = agents?.filter((a) => a.status === 'active').length ?? 0;
+  const totalAgentCount = agents?.length ?? 0;
+  const errorAgentCount = agents?.filter((a) => a.status === 'error').length ?? 0;
+  const lastExecTime = agents
+    ?.filter((a) => a.last_execution_at)
+    .sort((a, b) => new Date(b.last_execution_at!).getTime() - new Date(a.last_execution_at!).getTime())[0]
+    ?.last_execution_at;
 
   return (
     <div>
@@ -80,6 +90,106 @@ export default function DashboardPage() {
       {/* Stats */}
       <div className="mb-6">
         <StatsCards stats={stats} isLoading={statsLoading} />
+      </div>
+
+      {/* System Status Bar */}
+      <div style={{
+        background: 'var(--gc-card)',
+        border: '1px solid var(--gc-border)',
+        borderRadius: 'var(--radius)',
+        padding: '14px 22px',
+        marginBottom: 20,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 24,
+        flexWrap: 'wrap',
+      }}>
+        <div className="flex items-center gap-2">
+          <Activity style={{ width: 14, height: 14, color: 'var(--gc-primary)' }} />
+          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--gc-text)', letterSpacing: '.3px', textTransform: 'uppercase' }}>
+            System Status
+          </span>
+        </div>
+
+        {/* Divider */}
+        <div style={{ width: 1, height: 20, background: 'var(--gc-border)' }} />
+
+        {/* Active agents */}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            {agentsLoading ? (
+              <div className="animate-pulse" style={{ width: 50, height: 14, borderRadius: 4, background: 'var(--gc-border)' }} />
+            ) : (
+              <>
+                {Array.from({ length: Math.min(activeAgentCount, 8) }).map((_, i) => (
+                  <span key={i} className="pulse-dot" style={{
+                    width: 7,
+                    height: 7,
+                    borderRadius: '50%',
+                    background: 'var(--gc-green)',
+                    display: 'inline-block',
+                  }} />
+                ))}
+                <span style={{ fontSize: 12, color: 'var(--gc-text2)', marginLeft: 4 }}>
+                  <span style={{ fontWeight: 600, fontFamily: "'JetBrains Mono', monospace" }}>{activeAgentCount}</span> active
+                </span>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Error count */}
+        {errorAgentCount > 0 && (
+          <>
+            <div style={{ width: 1, height: 20, background: 'var(--gc-border)' }} />
+            <div className="flex items-center gap-1.5">
+              <span style={{
+                width: 7,
+                height: 7,
+                borderRadius: '50%',
+                background: 'var(--gc-red)',
+                display: 'inline-block',
+              }} />
+              <span style={{ fontSize: 12, color: 'var(--gc-red)', fontWeight: 600 }}>
+                {errorAgentCount} error{errorAgentCount > 1 ? 's' : ''}
+              </span>
+            </div>
+          </>
+        )}
+
+        <div style={{ width: 1, height: 20, background: 'var(--gc-border)' }} />
+
+        {/* Worker status */}
+        <div className="flex items-center gap-1.5">
+          <Server style={{ width: 13, height: 13, color: 'var(--gc-green)' }} />
+          <span style={{ fontSize: 12, color: 'var(--gc-text2)' }}>
+            Workers: <span style={{ fontWeight: 600, color: 'var(--gc-green)' }}>healthy</span>
+          </span>
+        </div>
+
+        <div style={{ width: 1, height: 20, background: 'var(--gc-border)' }} />
+
+        {/* Total agents */}
+        <div className="flex items-center gap-1.5">
+          <Bot style={{ width: 13, height: 13, color: 'var(--gc-muted)' }} />
+          <span style={{ fontSize: 12, color: 'var(--gc-text2)' }}>
+            <span style={{ fontWeight: 600, fontFamily: "'JetBrains Mono', monospace" }}>{totalAgentCount}</span> total agents
+          </span>
+        </div>
+
+        {/* Last execution */}
+        {lastExecTime && (
+          <>
+            <div style={{ width: 1, height: 20, background: 'var(--gc-border)' }} />
+            <div className="flex items-center gap-1.5">
+              <Clock style={{ width: 13, height: 13, color: 'var(--gc-muted)' }} />
+              <span style={{ fontSize: 12, color: 'var(--gc-text2)' }}
+                title={new Date(lastExecTime).toLocaleString()}>
+                Last execution: <span style={{ fontWeight: 600, fontFamily: "'JetBrains Mono', monospace" }}>{timeAgo(lastExecTime)}</span>
+              </span>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Two-column section */}

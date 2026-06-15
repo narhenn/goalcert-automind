@@ -304,55 +304,166 @@ export default function AgentDetailPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div style={{ background: 'var(--gc-card)', border: '1px solid var(--gc-border)', borderRadius: 'var(--radius)', padding: 20 }}>
-          <div className="flex items-center gap-2 mb-2">
-            <CheckCircle style={{ width: 16, height: 16, color: 'var(--gc-primary)' }} />
-            <span style={{ fontSize: 13, color: 'var(--gc-muted)' }}>Success Rate</span>
-          </div>
-          <p style={{ fontSize: 28, fontWeight: 800, color: 'var(--gc-text)', fontFamily: "'JetBrains Mono', monospace" }}>
-            {agent.success_rate != null ? `${Math.round(agent.success_rate)}%` : '--'}
-          </p>
-        </div>
-        <div style={{ background: 'var(--gc-card)', border: '1px solid var(--gc-border)', borderRadius: 'var(--radius)', padding: 20 }}>
-          <div className="flex items-center gap-2 mb-2">
-            <Zap style={{ width: 16, height: 16, color: 'var(--gc-primary)' }} />
-            <span style={{ fontSize: 13, color: 'var(--gc-muted)' }}>Total Executions</span>
-          </div>
-          <p style={{ fontSize: 28, fontWeight: 800, color: 'var(--gc-text)', fontFamily: "'JetBrains Mono', monospace" }}>
-            {agent.total_executions ?? 0}
-          </p>
-        </div>
-        <div style={{ background: 'var(--gc-card)', border: '1px solid var(--gc-border)', borderRadius: 'var(--radius)', padding: 20 }}>
-          <div className="flex items-center gap-2 mb-2">
-            <Clock style={{ width: 16, height: 16, color: 'var(--gc-primary)' }} />
-            <span style={{ fontSize: 13, color: 'var(--gc-muted)' }}>Last Run</span>
-          </div>
-          <p style={{ fontSize: 28, fontWeight: 800, color: 'var(--gc-text)', fontFamily: "'JetBrains Mono', monospace" }}>
-            {agent.last_execution_at ? timeAgo(agent.last_execution_at) : 'Never'}
-          </p>
-        </div>
-        <div style={{ background: 'var(--gc-card)', border: '1px solid var(--gc-border)', borderRadius: 'var(--radius)', padding: 20 }}>
-          <div className="flex items-center gap-2 mb-2">
-            <CalendarClock style={{ width: 16, height: 16, color: 'var(--gc-primary)' }} />
-            <span style={{ fontSize: 13, color: 'var(--gc-muted)' }}>Schedule</span>
-          </div>
-          {agent.schedule_cron ? (
-            <>
-              <p style={{ fontSize: 18, fontWeight: 800, color: 'var(--gc-text)', fontFamily: "'JetBrains Mono', monospace", lineHeight: 1.3 }}>
-                {cronToHuman(agent.schedule_cron)}
-              </p>
-              <p style={{ fontSize: 11, color: 'var(--gc-muted)', marginTop: 4, fontFamily: "'JetBrains Mono', monospace" }}>
-                Next run: {cronNextRun(agent.schedule_cron, agent.schedule_timezone)}
-              </p>
-            </>
-          ) : (
-            <p style={{ fontSize: 18, fontWeight: 800, color: 'var(--gc-muted)', fontFamily: "'JetBrains Mono', monospace" }}>
-              Manual
-            </p>
-          )}
-        </div>
-      </div>
+      {(() => {
+        const totalExecs = agent.total_executions ?? 0;
+        const totalCost = recentExecutions.reduce((s, e) => s + (e.total_cost || 0), 0);
+        const avgDuration = recentExecutions.length > 0
+          ? recentExecutions.filter((e) => e.duration_ms).reduce((s, e) => s + (e.duration_ms || 0), 0) / Math.max(recentExecutions.filter((e) => e.duration_ms).length, 1)
+          : 0;
+        // Count executions this week
+        const weekAgo = new Date(Date.now() - 7 * 86400000);
+        const thisWeekExecs = recentExecutions.filter((e) => e.started_at && new Date(e.started_at) > weekAgo).length;
+
+        // Build execution timeline (last 20 executions as colored squares)
+        const timelineExecs = (executions || []).slice(0, 20);
+
+        return (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+              {/* Success Rate */}
+              <div style={{ background: 'var(--gc-card)', border: '1px solid var(--gc-border)', borderRadius: 'var(--radius)', padding: 20 }}>
+                <div className="flex items-center gap-2 mb-2">
+                  <CheckCircle style={{ width: 16, height: 16, color: 'var(--gc-primary)' }} />
+                  <span style={{ fontSize: 13, color: 'var(--gc-muted)' }}>Success Rate</span>
+                </div>
+                <p style={{ fontSize: 28, fontWeight: 800, color: 'var(--gc-text)', fontFamily: "'JetBrains Mono', monospace" }}>
+                  {agent.success_rate != null ? `${Math.round(agent.success_rate)}%` : '--'}
+                </p>
+                <p style={{ fontSize: 11, color: 'var(--gc-muted)', marginTop: 4 }}>
+                  {agent.success_rate != null && agent.success_rate >= 90 ? 'Excellent reliability' :
+                   agent.success_rate != null && agent.success_rate >= 70 ? 'Good performance' :
+                   agent.success_rate != null ? 'Needs attention' : 'No data yet'}
+                </p>
+              </div>
+
+              {/* Total Executions */}
+              <div style={{ background: 'var(--gc-card)', border: '1px solid var(--gc-border)', borderRadius: 'var(--radius)', padding: 20 }}>
+                <div className="flex items-center gap-2 mb-2">
+                  <Zap style={{ width: 16, height: 16, color: 'var(--gc-primary)' }} />
+                  <span style={{ fontSize: 13, color: 'var(--gc-muted)' }}>Total Executions</span>
+                </div>
+                <p style={{ fontSize: 28, fontWeight: 800, color: 'var(--gc-text)', fontFamily: "'JetBrains Mono', monospace" }}>
+                  {totalExecs}
+                </p>
+                <p style={{ fontSize: 11, color: thisWeekExecs > 0 ? 'var(--gc-green)' : 'var(--gc-muted)', marginTop: 4, fontWeight: thisWeekExecs > 0 ? 600 : 400 }}>
+                  {thisWeekExecs > 0 ? `+${thisWeekExecs} this week` : 'No runs this week'}
+                </p>
+              </div>
+
+              {/* Total Cost */}
+              <div style={{ background: 'var(--gc-card)', border: '1px solid var(--gc-border)', borderRadius: 'var(--radius)', padding: 20 }}>
+                <div className="flex items-center gap-2 mb-2">
+                  <Zap style={{ width: 16, height: 16, color: '#d97706' }} />
+                  <span style={{ fontSize: 13, color: 'var(--gc-muted)' }}>Total Cost</span>
+                </div>
+                <p style={{ fontSize: 28, fontWeight: 800, color: 'var(--gc-text)', fontFamily: "'JetBrains Mono', monospace" }}>
+                  ${totalCost.toFixed(4)}
+                </p>
+                <p style={{ fontSize: 11, color: 'var(--gc-muted)', marginTop: 4 }}>
+                  {totalExecs > 0 ? `~$${(totalCost / totalExecs).toFixed(4)} per run` : 'No cost data'}
+                </p>
+              </div>
+
+              {/* Avg Duration */}
+              <div style={{ background: 'var(--gc-card)', border: '1px solid var(--gc-border)', borderRadius: 'var(--radius)', padding: 20 }}>
+                <div className="flex items-center gap-2 mb-2">
+                  <Clock style={{ width: 16, height: 16, color: 'var(--gc-primary)' }} />
+                  <span style={{ fontSize: 13, color: 'var(--gc-muted)' }}>Avg Duration</span>
+                </div>
+                <p style={{ fontSize: 28, fontWeight: 800, color: 'var(--gc-text)', fontFamily: "'JetBrains Mono', monospace" }}>
+                  {avgDuration > 0 ? formatDuration(avgDuration) : '--'}
+                </p>
+                <p style={{ fontSize: 11, color: 'var(--gc-muted)', marginTop: 4 }}>
+                  {agent.schedule_cron ? `${cronToHuman(agent.schedule_cron)} schedule` : 'Manual trigger only'}
+                </p>
+              </div>
+            </div>
+
+            {/* Execution Timeline */}
+            <div style={{
+              background: 'var(--gc-card)',
+              border: '1px solid var(--gc-border)',
+              borderRadius: 'var(--radius)',
+              padding: '14px 20px',
+              marginBottom: 22,
+            }}>
+              <div className="flex items-center justify-between" style={{ marginBottom: 10 }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--gc-text)', textTransform: 'uppercase', letterSpacing: '.5px' }}>
+                  Execution Timeline
+                </span>
+                <span style={{ fontSize: 11, color: 'var(--gc-muted)' }}>
+                  Last {timelineExecs.length} executions
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                {timelineExecs.length === 0 ? (
+                  <>
+                    {Array.from({ length: 20 }).map((_, i) => (
+                      <div key={i} style={{
+                        width: 16,
+                        height: 16,
+                        borderRadius: 3,
+                        background: 'var(--gc-soft)',
+                        border: '1px solid var(--gc-border)',
+                        flexShrink: 0,
+                      }} />
+                    ))}
+                    <span style={{ fontSize: 11, color: 'var(--gc-muted)', marginLeft: 8 }}>No data</span>
+                  </>
+                ) : (
+                  <>
+                    {timelineExecs.map((exec) => (
+                      <div
+                        key={exec.id}
+                        title={`${exec.status} - ${exec.started_at ? new Date(exec.started_at).toLocaleString() : 'N/A'}`}
+                        style={{
+                          width: 16,
+                          height: 16,
+                          borderRadius: 3,
+                          background: exec.status === 'success' ? 'var(--gc-green)' :
+                            exec.status === 'failed' ? 'var(--gc-red)' :
+                            exec.status === 'running' ? 'var(--gc-primary)' :
+                            'var(--gc-border)',
+                          flexShrink: 0,
+                          cursor: 'pointer',
+                          transition: 'transform .15s',
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.3)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                      />
+                    ))}
+                    {/* Fill remaining slots with empty squares */}
+                    {Array.from({ length: Math.max(0, 20 - timelineExecs.length) }).map((_, i) => (
+                      <div key={`empty-${i}`} style={{
+                        width: 16,
+                        height: 16,
+                        borderRadius: 3,
+                        background: 'var(--gc-soft)',
+                        border: '1px solid var(--gc-border)',
+                        flexShrink: 0,
+                      }} />
+                    ))}
+                  </>
+                )}
+              </div>
+              <div className="flex items-center gap-4" style={{ marginTop: 8 }}>
+                <div className="flex items-center gap-1.5">
+                  <span style={{ width: 8, height: 8, borderRadius: 2, background: 'var(--gc-green)', display: 'inline-block' }} />
+                  <span style={{ fontSize: 10, color: 'var(--gc-muted)' }}>Success</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span style={{ width: 8, height: 8, borderRadius: 2, background: 'var(--gc-red)', display: 'inline-block' }} />
+                  <span style={{ fontSize: 10, color: 'var(--gc-muted)' }}>Failed</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span style={{ width: 8, height: 8, borderRadius: 2, background: 'var(--gc-border)', display: 'inline-block', border: '1px solid var(--gc-border)' }} />
+                  <span style={{ fontSize: 10, color: 'var(--gc-muted)' }}>No data</span>
+                </div>
+              </div>
+            </div>
+          </>
+        );
+      })()}
 
       {/* Agent Memory */}
       <div style={{ background: 'var(--gc-card)', border: '1px solid var(--gc-border)', borderRadius: 'var(--radius)', padding: 22, marginBottom: 22 }}>

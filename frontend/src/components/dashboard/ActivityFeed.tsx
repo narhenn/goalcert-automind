@@ -1,5 +1,5 @@
-import { CheckCircle, AlertCircle, Clock } from 'lucide-react';
-import { timeAgo } from '../../lib/utils';
+import { CheckCircle, AlertCircle, Clock, Loader2 } from 'lucide-react';
+import { timeAgo, formatDuration, formatCost } from '../../lib/utils';
 
 interface ActivityEvent {
   execution_id: string;
@@ -9,6 +9,8 @@ interface ActivityEvent {
   status: string;
   triggered_by: string;
   created_at: string;
+  duration_ms?: number | null;
+  total_cost?: number | null;
 }
 
 interface ActivityFeedProps {
@@ -23,6 +25,8 @@ function getStatusIcon(status: string) {
     case 'failed':
     case 'error':
       return <AlertCircle style={{ width: 16, height: 16, color: 'var(--gc-red)' }} />;
+    case 'running':
+      return <Loader2 style={{ width: 16, height: 16, color: 'var(--gc-primary)' }} className="animate-spin" />;
     default:
       return <Clock style={{ width: 16, height: 16, color: 'var(--gc-muted)' }} />;
   }
@@ -87,7 +91,28 @@ export default function ActivityFeed({ activities, isLoading }: ActivityFeedProp
                    item.status === 'running' ? 'is running' :
                    `triggered (${item.triggered_by})`}
                 </p>
-                <p style={{ fontSize: 11, color: 'var(--gc-muted)', marginTop: 2 }}>{timeAgo(item.created_at)}</p>
+                <div className="flex items-center gap-3" style={{ marginTop: 3 }}>
+                  <span style={{ fontSize: 11, color: 'var(--gc-muted)' }}
+                    title={new Date(item.created_at).toLocaleString()}>
+                    {timeAgo(item.created_at)}
+                  </span>
+                  {item.duration_ms != null && item.duration_ms > 0 && (
+                    <>
+                      <span style={{ fontSize: 9, color: 'var(--gc-border)' }}>|</span>
+                      <span style={{ fontSize: 11, color: 'var(--gc-muted)', fontFamily: "'JetBrains Mono', monospace" }}>
+                        {formatDuration(item.duration_ms)}
+                      </span>
+                    </>
+                  )}
+                  {item.total_cost != null && item.total_cost > 0 && (
+                    <>
+                      <span style={{ fontSize: 9, color: 'var(--gc-border)' }}>|</span>
+                      <span style={{ fontSize: 11, color: 'var(--gc-muted)', fontFamily: "'JetBrains Mono', monospace" }}>
+                        {formatCost(item.total_cost)}
+                      </span>
+                    </>
+                  )}
+                </div>
               </div>
               {/* Status indicator */}
               <span style={{
@@ -96,7 +121,8 @@ export default function ActivityFeed({ activities, isLoading }: ActivityFeedProp
                 textTransform: 'uppercase',
                 letterSpacing: '.5px',
                 color: item.status === 'success' ? 'var(--gc-green)' :
-                  item.status === 'failed' ? 'var(--gc-red)' : 'var(--gc-muted)',
+                  item.status === 'failed' ? 'var(--gc-red)' :
+                  item.status === 'running' ? 'var(--gc-primary)' : 'var(--gc-muted)',
               }}>
                 {item.status}
               </span>
