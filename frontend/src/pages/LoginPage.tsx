@@ -149,8 +149,8 @@ export default function LoginPage() {
         <button
           type="button"
           onClick={() => {
-            setEmail('demo@goalcert.com');
-            setPassword('demo123');
+            setEmail('prem@nextxr.io');
+            setPassword('nextxr2026');
           }}
           style={{
             display: 'block',
