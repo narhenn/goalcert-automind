@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Blocks, Bot, Plug, BarChart3, Settings } from 'lucide-react';
+import { LayoutDashboard, Blocks, Plug, BarChart3, Settings } from 'lucide-react';
 import GoalCertLogo from './GoalCertLogo';
 import { useAuthStore } from '../../stores/authStore';
 

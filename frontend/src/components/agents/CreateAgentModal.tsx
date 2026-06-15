@@ -2,7 +2,6 @@ import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, Briefcase, PenTool, Mail, Users } from 'lucide-react';
 import { useCreateAgent, useTemplates } from '../../hooks/useAgents';
-import { cn } from '../../lib/utils';
 import type { AgentTemplate } from '../../types';
 
 const agentTypes = [
