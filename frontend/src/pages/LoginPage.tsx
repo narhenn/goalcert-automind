@@ -176,7 +176,7 @@ export default function LoginPage() {
             e.currentTarget.style.borderColor = 'var(--gc-border2)';
           }}
         >
-          Fill Demo Credentials
+          NextXR Demo (Prem)
         </button>
 
         <p className="text-center" style={{ fontSize: 13, color: 'var(--gc-muted)', marginTop: 14 }}>
