@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { useState } from 'react';
 import {
   CheckCircle,
@@ -118,7 +119,7 @@ function getWebSearchResults(outputData: any): { title: string; url: string; sni
 // Simple markdown-ish rendering for AI output
 function renderAIOutput(text: string) {
   const lines = text.split('\n');
-  const elements: JSX.Element[] = [];
+  const elements: ReactNode[] = [];
 
   lines.forEach((line, i) => {
     const trimmed = line.trim();

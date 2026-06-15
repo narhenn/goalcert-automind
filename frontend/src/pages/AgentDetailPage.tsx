@@ -1,11 +1,11 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, PenTool, Pause, Play, Trash2, Clock, CheckCircle, Zap, Rocket, Loader2, ChevronDown, ChevronRight, Brain, CalendarClock, MessageCircle } from 'lucide-react';
+import { ArrowLeft, PenTool, Pause, Play, Trash2, Clock, CheckCircle, Zap, Rocket, Loader2, ChevronDown, ChevronRight, Brain, MessageCircle } from 'lucide-react';
 import { useAgent, useDeleteAgent } from '../hooks/useAgents';
 import { useExecutions, useTriggerExecution } from '../hooks/useExecutions';
 import AgentStatusBadge from '../components/agents/AgentStatusBadge';
 import LiveExecutionPanel from '../components/executions/LiveExecutionPanel';
 import LiveConsole from '../components/executions/LiveConsole';
-import { cn, formatDate, formatDuration, formatCost, timeAgo, cronToHuman, cronNextRun } from '../lib/utils';
+import { cn, formatDate, formatDuration, formatCost, timeAgo, cronToHuman } from '../lib/utils';
 import apiClient from '../api/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
