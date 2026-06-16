@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Blocks, Plug, BarChart3, Settings } from 'lucide-react';
+import { LayoutDashboard, Blocks, Plug, BarChart3, FileText, Settings } from 'lucide-react';
 import GoalCertLogo from './GoalCertLogo';
 import { useAuthStore } from '../../stores/authStore';
 
@@ -14,6 +14,7 @@ const agentNav = [
 
 const insightNav = [
   { to: '/analytics', label: 'Analytics', icon: BarChart3 },
+  { to: '/reports', label: 'Reports', icon: FileText },
   { to: '/settings', label: 'Settings', icon: Settings },
 ];
 

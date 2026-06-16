@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuthStore } from '../stores/authStore';
-import { User, Key, Bell, Shield } from 'lucide-react';
+import { User, Key, Bell, Shield, Building2 } from 'lucide-react';
 
 export default function SettingsPage() {
   const user = useAuthStore((s) => s.user);
@@ -163,6 +163,39 @@ export default function SettingsPage() {
             }}>
               Update Password
             </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Account / Multi-tenancy */}
+      <div style={{
+        background: 'var(--gc-card)', border: '1px solid var(--gc-border)',
+        borderRadius: 'var(--radius)', padding: 24, marginTop: 20,
+      }}>
+        <h3 className="flex items-center gap-2" style={{ fontSize: 14, fontWeight: 600, color: 'var(--gc-text)', marginBottom: 16 }}>
+          <Building2 style={{ width: 16, height: 16, color: 'var(--gc-primary)' }} />
+          Account
+        </h3>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between" style={{
+            background: 'var(--gc-soft)',
+            borderRadius: 10,
+            padding: '10px 14px',
+          }}>
+            <span style={{ fontSize: 12, color: 'var(--gc-muted)' }}>Your workspace</span>
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--gc-text)', fontFamily: "'JetBrains Mono', monospace" }}>
+              {user?.email || 'Unknown'}
+            </span>
+          </div>
+          <div style={{
+            background: 'rgba(73,2,162,.04)',
+            border: '1px solid rgba(73,2,162,.1)',
+            borderRadius: 10,
+            padding: '10px 14px',
+          }}>
+            <p style={{ fontSize: 12, color: 'var(--gc-text2)', margin: 0 }}>
+              Agents are isolated per account. Each user can only view and manage their own agents, executions, and integrations.
+            </p>
           </div>
         </div>
       </div>

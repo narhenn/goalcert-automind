@@ -10,6 +10,7 @@ const pageTitles: Record<string, string> = {
   '/templates': 'Templates',
   '/integrations': 'Integrations',
   '/analytics': 'Analytics',
+  '/reports': 'Reports',
   '/settings': 'Settings',
 };
 

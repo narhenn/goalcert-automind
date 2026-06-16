@@ -15,6 +15,7 @@ import IntegrationsPage from './pages/IntegrationsPage';
 import ExecutionDetailPage from './pages/ExecutionDetailPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import SettingsPage from './pages/SettingsPage';
+import ReportsPage from './pages/ReportsPage';
 import NotFound from './components/layout/NotFound';
 import ErrorBoundary from './components/layout/ErrorBoundary';
 
@@ -51,6 +52,7 @@ function App() {
           <Route path="/executions/:executionId" element={<ProtectedRoute><AppLayout><ExecutionDetailPage /></AppLayout></ProtectedRoute>} />
           <Route path="/integrations" element={<ProtectedRoute><AppLayout><IntegrationsPage /></AppLayout></ProtectedRoute>} />
           <Route path="/analytics" element={<ProtectedRoute><AppLayout><AnalyticsPage /></AppLayout></ProtectedRoute>} />
+          <Route path="/reports" element={<ProtectedRoute><AppLayout><ReportsPage /></AppLayout></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><AppLayout><SettingsPage /></AppLayout></ProtectedRoute>} />
 
           {/* 404 catch-all */}
