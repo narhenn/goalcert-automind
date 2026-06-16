@@ -46,12 +46,14 @@ class WorkflowExecutor:
         execution_id: str,
         workflow_definition: dict,
         variables: dict | None = None,
+        session_factory=None,
     ):
         self.execution_id = execution_id
         self.definition = workflow_definition
         self.variables: dict = variables or {}
         self.total_cost: float = 0.0
         self.memory_context: str = ""
+        self._session_factory = session_factory or async_session
         self.node_executors = {
             "trigger": TriggerNodeExecutor(),
             "ai_action": AIActionNodeExecutor(),
@@ -87,7 +89,7 @@ class WorkflowExecutor:
         started_at = datetime.now(timezone.utc)
 
         # Mark execution as running and load memory context
-        async with async_session() as session:
+        async with self._session_factory() as session:
             execution = await self._get_execution(session)
             execution.status = "running"
             execution.started_at = started_at
@@ -309,7 +311,7 @@ class WorkflowExecutor:
         input_data: dict,
     ) -> uuid.UUID:
         log_id = uuid.uuid4()
-        async with async_session() as session:
+        async with self._session_factory() as session:
             node_log = ExecutionNodeLog(
                 id=log_id,
                 execution_id=uuid.UUID(self.execution_id),
@@ -335,7 +337,7 @@ class WorkflowExecutor:
         error_message: str | None = None,
         llm_usage: dict | None = None,
     ) -> None:
-        async with async_session() as session:
+        async with self._session_factory() as session:
             result = await session.execute(
                 select(ExecutionNodeLog).where(ExecutionNodeLog.id == log_id)
             )
@@ -357,7 +359,7 @@ class WorkflowExecutor:
         input_data: dict,
         output_data: dict,
     ) -> None:
-        async with async_session() as session:
+        async with self._session_factory() as session:
             node_log = ExecutionNodeLog(
                 id=uuid.uuid4(),
                 execution_id=uuid.UUID(self.execution_id),
@@ -397,7 +399,7 @@ class WorkflowExecutor:
         # Signal stream end
         self._publish_log("__STREAM_END__", status="done")
 
-        async with async_session() as session:
+        async with self._session_factory() as session:
             result = await session.execute(
                 select(Execution).where(Execution.id == self.execution_id)
             )

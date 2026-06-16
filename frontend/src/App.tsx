@@ -16,6 +16,7 @@ import ExecutionDetailPage from './pages/ExecutionDetailPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import SettingsPage from './pages/SettingsPage';
 import NotFound from './components/layout/NotFound';
+import ErrorBoundary from './components/layout/ErrorBoundary';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,6 +35,7 @@ function App() {
   }, [loadFromStorage]);
 
   return (
+    <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
@@ -56,6 +58,7 @@ function App() {
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

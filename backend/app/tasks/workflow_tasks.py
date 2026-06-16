@@ -30,8 +30,18 @@ def execute_workflow_task(execution_id: str, workflow_definition: dict) -> dict:
 
 
 async def _execute(execution_id: str, workflow_definition: dict) -> dict:
-    executor = WorkflowExecutor(execution_id, workflow_definition)
-    return await executor.execute()
+    # Create a fresh engine for this event loop (asyncpg engines are not reusable across loops)
+    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+    from app.core.config import settings
+
+    engine = create_async_engine(settings.async_database_url, pool_size=5)
+    session_factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
+    try:
+        executor = WorkflowExecutor(execution_id, workflow_definition, session_factory=session_factory)
+        return await executor.execute()
+    finally:
+        await engine.dispose()
 
 
 async def _mark_failed(execution_id: str, error_message: str) -> None:
@@ -65,12 +75,16 @@ def execute_workflow_scheduled_task(agent_id: str) -> dict:
 
 async def _execute_scheduled(agent_id: str) -> dict:
     """Look up agent + workflow, create execution, run it."""
-    from app.core.database import async_session
+    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+    from app.core.config import settings
     from app.models.agent import Agent
     from app.models.workflow import Workflow
     from app.models.execution import Execution
 
-    async with async_session() as session:
+    engine = create_async_engine(settings.async_database_url, pool_size=5)
+    session_factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
+    async with session_factory() as session:
         # Get agent
         result = await session.execute(select(Agent).where(Agent.id == agent_id))
         agent = result.scalar_one_or_none()
@@ -99,6 +113,9 @@ async def _execute_scheduled(agent_id: str) -> dict:
         workflow_definition = workflow.definition
         await session.commit()
 
-    # Run executor
-    executor = WorkflowExecutor(execution_id, workflow_definition)
-    return await executor.execute()
+    # Run executor with fresh session factory
+    try:
+        executor = WorkflowExecutor(execution_id, workflow_definition, session_factory=session_factory)
+        return await executor.execute()
+    finally:
+        await engine.dispose()
