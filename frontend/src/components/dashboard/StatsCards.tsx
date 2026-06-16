@@ -105,24 +105,12 @@ export default function StatsCards({ stats, isLoading }: StatsCardsProps) {
                   {card.label}
                 </p>
 
-                {/* CTA pill bottom-right (decorative label) */}
-                <span
-                  style={{
-                    position: 'absolute',
-                    bottom: 14,
-                    right: 16,
-                    fontSize: 10,
-                    fontWeight: 600,
-                    color: 'var(--gc-primary)',
-                    background: '#ffffff',
-                    padding: '4px 10px',
-                    borderRadius: 20,
-                    pointerEvents: 'none',
-                    userSelect: 'none',
-                  }}
-                >
-                  {card.cta}
-                </span>
+                {/* Subtle sub-label */}
+                <p style={{ fontSize: 11, color: 'rgba(255,255,255,.5)', marginTop: 2 }}>
+                  {card.key === 'active_agents' ? 'deployed' :
+                   card.key === 'tasks_completed' ? 'this month' :
+                   card.key === 'estimated_savings' ? 'labor saved' : 'per execution'}
+                </p>
 
                 {/* Wave overlay (subtle) */}
                 <div style={{

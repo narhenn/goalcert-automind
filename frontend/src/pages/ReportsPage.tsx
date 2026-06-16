@@ -4,24 +4,41 @@ import { useLatestExecutionLogs } from '../hooks/useExecutions';
 import { timeAgo, formatCost } from '../lib/utils';
 import type { Agent, ExecutionNodeLog } from '../types';
 
-function getAiOutput(logs: ExecutionNodeLog[]): string | null {
-  // Find the last ai_action node that succeeded and has output
-  const aiLogs = logs
-    .filter((l) => l.node_type === 'ai_action' && l.status === 'success' && l.output_data)
-    .sort((a, b) => new Date(b.ended_at || b.created_at).getTime() - new Date(a.ended_at || a.created_at).getTime());
+function extractText(obj: any): string | null {
+  if (!obj || typeof obj !== 'object') return typeof obj === 'string' ? obj : null;
+  // Direct text fields
+  if (typeof obj.output === 'string') return obj.output;
+  if (typeof obj.result === 'string') return obj.result;
+  if (typeof obj.text === 'string') return obj.text;
+  if (typeof obj.content === 'string') return obj.content;
+  // Recurse into values (skip llm_usage, error)
+  for (const [key, val] of Object.entries(obj)) {
+    if (key === 'llm_usage' || key === 'error') continue;
+    if (typeof val === 'string' && val.length > 50) return val;
+    if (typeof val === 'object' && val !== null) {
+      const found = extractText(val);
+      if (found && found.length > 50) return found;
+    }
+  }
+  return null;
+}
 
+function getAiOutput(logs: ExecutionNodeLog[]): string | null {
+  // Find all ai_action nodes that succeeded, prefer the one with the longest output
+  const aiLogs = logs.filter((l) => l.node_type === 'ai_action' && l.status === 'success' && l.output_data);
   if (aiLogs.length === 0) return null;
 
-  const out = aiLogs[0].output_data;
-  // Try common output keys
-  if (typeof out === 'string') return out;
-  if (out.result) return String(out.result);
-  if (out.output) return String(out.output);
-  if (out.text) return String(out.text);
-  if (out.content) return String(out.content);
-  if (out.response) return String(out.response);
-  // Fallback: stringify
-  return JSON.stringify(out, null, 2);
+  let bestText: string | null = null;
+  for (const log of aiLogs) {
+    const out = log.output_data;
+    // Try output_variables first (the standard structure)
+    const ov = out?.output_variables || out;
+    const text = extractText(ov);
+    if (text && (!bestText || text.length > bestText.length)) {
+      bestText = text;
+    }
+  }
+  return bestText;
 }
 
 function renderAiText(text: string) {
