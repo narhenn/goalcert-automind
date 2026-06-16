@@ -659,7 +659,7 @@ export default function LiveExecutionPanel({ executionId, onClose }: LiveExecuti
 
   if (!execution) return null;
 
-  const totalCost = logs.reduce((sum, l) => sum + (l.llm_usage?.cost || 0), 0) || execution.total_cost;
+  const totalCost = logs.reduce((sum, l) => sum + Number(l.llm_usage?.cost || 0), 0) || Number(execution.total_cost || 0);
   const totalInputTokens = logs.reduce((sum, l) => sum + (l.llm_usage?.input_tokens || 0), 0);
   const totalOutputTokens = logs.reduce((sum, l) => sum + (l.llm_usage?.output_tokens || 0), 0);
   const totalTokens = totalInputTokens + totalOutputTokens;

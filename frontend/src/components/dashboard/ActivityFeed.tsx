@@ -104,7 +104,7 @@ export default function ActivityFeed({ activities, isLoading }: ActivityFeedProp
                       </span>
                     </>
                   )}
-                  {item.total_cost != null && item.total_cost > 0 && (
+                  {item.total_cost != null && Number(item.total_cost) > 0 && (
                     <>
                       <span style={{ fontSize: 9, color: 'var(--gc-border)' }}>|</span>
                       <span style={{ fontSize: 11, color: 'var(--gc-muted)', fontFamily: "'JetBrains Mono', monospace" }}>

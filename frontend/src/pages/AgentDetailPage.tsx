@@ -306,9 +306,9 @@ export default function AgentDetailPage() {
       {/* Stats Cards */}
       {(() => {
         const totalExecs = agent.total_executions ?? 0;
-        const totalCost = recentExecutions.reduce((s, e) => s + (e.total_cost || 0), 0);
+        const totalCost = recentExecutions.reduce((s, e) => s + Number(e.total_cost || 0), 0);
         const avgDuration = recentExecutions.length > 0
-          ? recentExecutions.filter((e) => e.duration_ms).reduce((s, e) => s + (e.duration_ms || 0), 0) / Math.max(recentExecutions.filter((e) => e.duration_ms).length, 1)
+          ? recentExecutions.filter((e) => e.duration_ms).reduce((s, e) => s + Number(e.duration_ms || 0), 0) / Math.max(recentExecutions.filter((e) => e.duration_ms).length, 1)
           : 0;
         // Count executions this week
         const weekAgo = new Date(Date.now() - 7 * 86400000);
@@ -357,10 +357,10 @@ export default function AgentDetailPage() {
                   <span style={{ fontSize: 13, color: 'var(--gc-muted)' }}>Total Cost</span>
                 </div>
                 <p style={{ fontSize: 28, fontWeight: 800, color: 'var(--gc-text)', fontFamily: "'JetBrains Mono', monospace" }}>
-                  ${totalCost.toFixed(4)}
+                  ${Number(totalCost).toFixed(4)}
                 </p>
                 <p style={{ fontSize: 11, color: 'var(--gc-muted)', marginTop: 4 }}>
-                  {totalExecs > 0 ? `~$${(totalCost / totalExecs).toFixed(4)} per run` : 'No cost data'}
+                  {totalExecs > 0 ? `~$${(Number(totalCost) / totalExecs).toFixed(4)} per run` : 'No cost data'}
                 </p>
               </div>
 
